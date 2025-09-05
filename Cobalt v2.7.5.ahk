@@ -1,4 +1,5 @@
 #SingleInstance, force
+; #Include, autocrafting_LUT.ahk
 
 global version := "v2.7.5"
 
@@ -30,6 +31,7 @@ global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendarry Egg", 
 global pingList := ["Beanstalk Seed", "Ember Lily", "Sugar Apple", "Burning Bud","Giant Pinecone Seed","Elder Strawberry", "Master Sprinkler", "Grandmaster Sprinkler", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Mythical Egg", "Paradise Egg", "Bug Egg"]
 
 ; - Technical stuff below, no touchy! -
+
 global allList := []
 
 allList.Push(seedItems*)
@@ -40,13 +42,6 @@ global currentlyAllowedSeeds := []
 global currentlyAllowedGear := []
 global currentlyAllowedEggs := []
 global currentlyAllowedEvent := []
-
-global scrollCount
-scrollCount := {}
-scrollCount["Zen Seed Pack"] := 2
-scrollCount["Zen Egg"] := 2
-scrollCount["Zen Crate"] := 2
-scrollCount["Zen Gnome Crate"] := 2
 
 global privateServerLink := ""
 global webhookURL := ""
@@ -73,8 +68,10 @@ StartMacro:
     if(started = 0) {
         Return
     }
-    sendDiscordMessage("Macro started!", 65280)
     WinActivate, ahk_exe RobloxPlayerBeta.exe
+    ;     craftItem(acLUT.gear, "reclaimer")
+    ; Return
+    sendDiscordMessage("Macro started!", 65280)
     finished := false
 
 Alignment:
@@ -88,7 +85,7 @@ Alignment:
     SetTimer, ShowTimeTip, Off
     tooltipLog("Placing Recall Wrench in slot 2...")
     searchItem("recall")
-    keyEncoder("EDUUEDRE")
+    keyEncoder("DUUEDRE")
     ; close it
     startInvAction()
     tooltipLog("Aligning camera...")
@@ -128,7 +125,7 @@ Alignment:
     repeatKey("esc")
     sleep, 500
     startUINav()
-    keyEncoder("ULLULLULLULLULLULLRRRRRRLELERRELLRELERRELLRELERRELLRELERRELLRELERRELLW")
+    keyEncoder("ULLULLULLULLULLULLURRRRRDULELERRELLRELERRELLRELERRELLRELERRELLRELERRELLW")
     startUINav()
     repeatKey("esc")
     sleep, 100
@@ -149,7 +146,7 @@ SeedCycle:
     startUINav()
     ;open shop
     sleep, 1000
-    keyEncoder("ULLULLULLULLULLULLWRRRRRLLEW")
+    keyEncoder("ULLULLULLULLULLULLUWRRRRRLLEW")
     SendInput, e
     startUINav()
     startUINav()
@@ -201,7 +198,7 @@ EggCycle:
         canDoEgg := false
         tooltipLog("Going to egg shop...")
         recalibrateCameraDistance()
-        holdKey("w", 600)
+        holdKey("up", 600)
         Sleep, %sleepPerf%
         SendInput, e
         Sleep, 3000
@@ -318,7 +315,7 @@ Return
 goShopping(arr, allArr, spamCount := 50) {
     keyEncoder("RRRR")
     repeatKey("Up", 40)
-    keyEncoder("LLRDRD")
+    keyEncoder("RRDRD")
     for index, item in allArr {
 
         if(!arrContains(arr, item)) {
@@ -331,7 +328,7 @@ goShopping(arr, allArr, spamCount := 50) {
         messageQueue.Push("Bought nothing...")
     }
     repeatKey("Up", 40)
-    keyEncoder("LLRDRWEWW")
+    keyEncoder("RRDRLRWE")
 }
 
 goShoppingEgg(arr, allArr) {
@@ -353,7 +350,7 @@ goShoppingEgg(arr, allArr) {
     repeatKey("Up", 40)
     startUINav()
     startUINav()
-    keyEncoder("ULLLLLLLLURRRRDRLRE") ; method 1
+    keyEncoder("UUULLLLLLLLURRRRDRLRE") ; method 1
     ; goToEggClose() ; method 2
     ; SafeClickRelative(0.68, 0.28) ; method 3
 }
@@ -369,6 +366,14 @@ buyAllAvailable(spamCount := 50, item := "") {
         messageQueue.Push("Bought " . item . "!")
     }
     repeatKey("Down")
+}
+
+craftItem(shopObj, item) {
+    keyEncoder("RRRR")
+    repeatKey("Up", 40)
+    keyEncoder("LLLLLLLRRRRRRD")
+    repeatKey("Down", findScuffedIndex(shopObj, item) - 1)
+    keyEncoder("EDE")
 }
 
 isThereStock() {
@@ -546,6 +551,10 @@ keyEncoder(str) {
 
 ; repeats keys obv
 repeatKey(key, count := 1) {
+    if(count < 1) {
+        Return
+    }
+
     Loop, %count% {
         SendInput, {%key%}
         Sleep, %sleepPerf%
@@ -567,6 +576,15 @@ indexOf(array := "", value := "") {
     }
 
     return -1
+}
+
+findScuffedIndex(arr, value := "") {
+    for index, item in arr {
+        if (item["name"] = value) {
+            return index
+        }
+    }
+    return 0
 }
 
 arrContains(array := "", value := "") {
@@ -672,10 +690,11 @@ searchItem(item) {
     keyEncoder("E")
     startInvAction()
     startUINav()
-    keyEncoder("ULLULLULLULLULLULL")
+    keyEncoder("ULLULLULLULLULLULLU")
     keyEncoder("RERRRDDRRRUUUE")
     repeatKey("Backspace", 30)
     typeString(item)
+    keyEncoder("E")
 }
 
 arrayToString(arr, delimiter := ", ") {
