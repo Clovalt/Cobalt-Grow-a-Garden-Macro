@@ -1,5 +1,5 @@
 #SingleInstance, force
-; #Include, autocrafting_LUT.ahk
+#Include, autocrafting_LUT.ahk
 
 global version := "v2.7.5"
 
@@ -69,10 +69,10 @@ StartMacro:
         Return
     }
     WinActivate, ahk_exe RobloxPlayerBeta.exe
-    ;     craftItem(acLUT.gear, "reclaimer")
-    ; Return
-    sendDiscordMessage("Macro started!", 65280)
-    finished := false
+    Gosub, AutocraftTests
+Return
+sendDiscordMessage("Macro started!", 65280)
+finished := false
 
 Alignment:
     if(crashCounter >= 3) {
@@ -91,7 +91,7 @@ Alignment:
     tooltipLog("Aligning camera...")
     recalibrateCameraDistance()
 
-    Sleep, 500
+    Sleep, %sleepPerf%
     SysGet, screenWidth, 78
     SysGet, screenHeight, 79
 
@@ -145,8 +145,7 @@ SeedCycle:
 
     startUINav()
     ;open shop
-    sleep, 1000
-    keyEncoder("ULLULLULLULLULLULLUWRRRRRLLEW")
+    keyEncoder("WWULLULLULLULLULLULLUWRRRRRLLEW")
     SendInput, e
     startUINav()
     startUINav()
@@ -181,7 +180,7 @@ GearCycle:
         goShopping(currentlyAllowedGear, gearItems, 20)
         sendDiscordQueue("Gear Shop")
         startUINav()
-        Sleep, 100
+        Sleep, %sleepPerf%
     } else {
         tooltipLog("Error: Gear shop did not open")
         sendDiscordMessage("Gear shop did not open! Reconnecting...", 16711680)
@@ -312,6 +311,59 @@ ShowTimeTip:
     }
 Return
 
+AutocraftTests:
+    item := "reclaimer"
+    SendInput, c
+    Sleep, %sleepPerf%
+    SendInput, e
+    Sleep, %sleepPerf%
+    startUINav()
+    index := selectCraftableItem(acLUT.gear, "reclaimer")
+    for i, req in acLUT.gear[index]["reqs"] {
+        if(req.brute_force) {
+            searchItem(req.brute_force)
+            keyEncoder("LLL")
+            repeatKey("down", req.category)
+            keyEncoder("ERL")
+            c := req.max_brute_count
+            Loop, %c% {
+                keyEncoder("EDUD")
+                repeatKey("right", req.max_brute_count + 1 - A_Index)
+                keyEncoder("EUU")
+            }
+            Loop, 3 {
+                numberKey := A_Index + 5
+                SendInput, {%numberKey%}
+                Sleep, %sleepPerf%
+                SendInput, e
+                Sleep, %sleepPerf%
+            }
+            startInvAction()
+            Continue
+        }
+        
+        if(req.im_a_recall_wrench) {
+            SendInput, {2}
+            Sleep, %sleepPerf%
+            SendInput, e
+            Sleep, %sleepPerf%
+            startInvAction()
+            Continue
+        }
+
+        searchItem(req.search)
+        keyEncoder("LLL")
+        repeatKey("down", req.category)
+        keyEncoder("ERLEDUDRRRREW")
+        SendInput, {9}
+        Sleep, %sleepPerf%
+        SendInput, e
+        Sleep, %sleepPerf%
+        startInvAction()
+    }
+    ; searchItem(acLUT.gear[index]["reqs"])
+Return
+
 goShopping(arr, allArr, spamCount := 50) {
     keyEncoder("RRRR")
     repeatKey("Up", 40)
@@ -368,12 +420,14 @@ buyAllAvailable(spamCount := 50, item := "") {
     repeatKey("Down")
 }
 
-craftItem(shopObj, item) {
+selectCraftableItem(shopObj, item) {
     keyEncoder("RRRR")
     repeatKey("Up", 40)
-    keyEncoder("LLLLLLLRRRRRRD")
-    repeatKey("Down", findScuffedIndex(shopObj, item) - 1)
-    keyEncoder("EDE")
+    keyEncoder("LLLLLLLURRRRRDDWWWEWEW")
+    count := findScuffedIndex(shopObj, item)
+    repeatKey("Down", count - 1)
+    keyEncoder("WWEDE")
+    Return count
 }
 
 isThereStock() {
@@ -382,7 +436,7 @@ isThereStock() {
 }
 
 isShopOpen() {
-    Sleep, 50
+    Sleep, %sleepPerf%
 
     ; 1. every other shop bg OR event and egg bg
     ; 2. check no large block of disconnect pixels exist
@@ -505,12 +559,12 @@ SafeClickRelative(xRatio, yRatio) {
 
 startUINav() {
     SendInput, {%uiNavKeybind%}
-    Sleep, 50
+    Sleep, %sleepPerf%
 }
 
 startInvAction() {
     SendInput, {%invNavKeybind%}
-    Sleep, 50
+    Sleep, %sleepPerf%
 }
 
 tooltipLog(message, duration := 3000) {
@@ -604,8 +658,14 @@ typeString(string) {
 
     Loop, Parse, string
     {
-        Send, {%A_LoopField%}
-        Sleep, 50
+    value := A_LoopField
+
+    if(A_LoopField = " ") {
+        value := "space"
+    }
+
+        Send, {%value%}
+        Sleep, %sleepPerf%
     }
 }
 
@@ -724,7 +784,6 @@ ShowGui:
     GuiControl,, CloseBtn, X
     GuiControl, +BackgroundFF4444, CloseBtn
     Gui, Show, w520 h430, Cobalt %version%
-    Sleep, 100
     WinGet, hwnd, ID, Cobalt %version%
     style := DllCall("GetWindowLong", "Ptr", hwnd, "Int", -16, "UInt")
     style := style & ~0xC00000 & ~0x800000 & ~0x100000 & ~0x40000
