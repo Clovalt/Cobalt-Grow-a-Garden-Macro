@@ -1,7 +1,7 @@
 #SingleInstance, force
-; #Include, modules/autocrafting_LUT.ahk
+#Include, modules/autocrafting_LUT.ahk
 
-global version := "v2.7.6"
+global version := "v2.8"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -60,9 +60,9 @@ global sleepPerf := 200
 global crashCounter := 0
 
 global perfSetting := "Default"
-; global autocraftingQueue := []
-; global currentCraftingItem := {}
-; global autocraftingQueueIndex := 1
+global autocraftingQueue := []
+global currentCraftingItem := {}
+global autocraftingQueueIndex := 1
 
 global plantCraftables := []
 for index, obj in acLUT.plants
@@ -79,11 +79,13 @@ StartMacro:
     if(started = 0) {
         Return
     }
+    ; focus the window so we can actually work the macro 
     WinActivate, ahk_exe RobloxPlayerBeta.exe
     sendDiscordMessage("Macro started!", 65280)
     finished := false
 
 Alignment:
+    ; prevents from false warns even though its literally an exception in roblox's rules
     if(crashCounter >= 3) {
         sendDiscordMessage("Crashed 3 times in a row, pausing macro!", 16711680, true)
         MsgBox, Crashed 3 times in a row, press OK to continue!
@@ -91,15 +93,29 @@ Alignment:
     }
 
     exitIfWindowDies()
+
+    ; shut off the countdown timer
     SetTimer, ShowTimeTip, Off
+    tooltipLog("Toggling shift lock off...")
+
+    ; toggle shift lock off to prevent camera issues
+    repeatKey("esc")
+    Sleep, 500
+    repeatKey("tab")
+    Sleep, 500
+    keyEncoder("RR")
+    Sleep, 500
+    repeatKey("esc")
+    Sleep, 500
+
     tooltipLog("Placing Recall Wrench in slot 2...")
     searchItem("recall")
     keyEncoder("DUUEDRE")
-    ; close it
     startInvAction()
     tooltipLog("Aligning camera...")
     recalibrateCameraDistance()
 
+    ; do some mouse moving schenanigans to align the camera properly
     Sleep, %sleepPerf%
     SysGet, screenWidth, 78
     SysGet, screenHeight, 79
@@ -126,6 +142,7 @@ Alignment:
     Click, Right, Up
     Sleep, 100
 
+    ; turn on follow camera mode
     repeatKey("esc")
     sleep, 100
     repeatKey("tab")
@@ -142,25 +159,27 @@ Alignment:
     sleep, 100
     keyEncoder("UUUUUUUUUUUDRRW")
     repeatKey("esc")
-    keyEncoder("WDREWW")
+    keyEncoder("WDREWW") ; TODO: determine if this is actually required
     tooltipLog("Alignment complete!")
 
 SeedCycle:
     exitIfWindowDies()
+
+    ; skip seeds if none are selected
     if (currentlyAllowedSeeds.Length() = 0) {
         Gosub, GearCycle
         Return
     }
 
     startUINav()
-    ;open shop
+    ; open shop
     keyEncoder("WWULLULLULLULLULLULLUWRRRRRLLEWW")
     SendInput, e
     startUINav()
     startUINav()
     Sleep, 3000
     if(isShopOpen()) {
-        ;we now have the carrot selected, start seed nav
+        ; we now have the carrot selected, start seed nav
         tooltipLog("Shopping for seeds...")
         goShopping(currentlyAllowedSeeds, seedItems)
         sendDiscordQueue("Seed Shop")
@@ -206,7 +225,7 @@ EggCycle:
         canDoEgg := false
         tooltipLog("Going to egg shop...")
         recalibrateCameraDistance()
-        holdKey("up", 600)
+        holdKey("up", 600) ; walk to shop
         Sleep, %sleepPerf%
         SendInput, e
         Sleep, 3000
@@ -217,12 +236,14 @@ EggCycle:
         }
         Sleep, 500
 
+        ; click the open egg shop dialog option
         SafeClickRelative(0.75, 0.2)
         Sleep 3000
 
         if(isShopOpen()) {
             startUINav()
             tooltipLog("Shopping for eggs...")
+            ; a separate function is used because the egg shop likes to be special
             goShoppingEgg(currentlyAllowedEggs, eggItems)
             sendDiscordQueue("Egg Shop")
             Sleep, 500
@@ -240,67 +261,78 @@ EggCycle:
         holdKey("down", 600)
     }
 
-    ; dear code snoopers, this is broken, no you cannot use it
-; Autocraft:
-;     exitIfWindowDies()
-;     if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && autocraftingQueue.Length() > 0) {
-;         tpToGear()
-;     }
-;     if(autocraftingQueue.Length() = 0) {
-;         tooltipLog("No items in autocrafting queue, skipping autocrafting...")
-;         Return
-;     }
-;     if(currentCraftingItem["time"] < 0) {
-;         currentCraftingItem := {}
-;         autocraftingQueueIndex += 1
-;     }
-;     if(autocraftingQueueIndex > autocraftingQueue.Length()) {
-;         autocraftingQueueIndex := 1
-;     }
-;     item := autocraftingQueue[autocraftingQueueIndex]
-;     category := []
-;     ; from gear shop
-;     ; 900ms - seed crafting
-;     ; 1200ms - gear crafting
-;     walkTime := 900
-    
-;     if(findScuffedIndex(acLUT.plants, item) != 0) {
-;         category := acLUT.plants
-;         walkTime := 900
-;     } else {
-;         category := acLUT.gear
-;         walkTime := 1200
-;     }
+Autocraft:
+    exitIfWindowDies()
+    if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && autocraftingQueue.Length() > 0) {
+        tpToGear()
+    }
+    if(autocraftingQueue.Length() = 0) {
+        tooltipLog("No items in autocrafting queue, skipping autocrafting...")
+        Return
+    }
 
-;     categoryIndex := findScuffedIndex(category, item)
-    
-;     currentCraftingItem := category[categoryIndex].Clone()
+    ; if we have a current item, check if its done
+    if(currentCraftingItem["time"] < 0) {
+        currentCraftingItem := {}
+        autocraftingQueueIndex += 1
+    }
 
-;     tooltipLog("Going to crafting...")
-;     ; note to self: if you get reports where the egg shop doesnt close and then starts doing random stuff, its probably because of this
-;     recalibrateCameraDistance()
-;     holdKey("down", walkTime)
-;     SendInput, c
-;     Sleep, %sleepPerf%
-;     SendInput, e
-;     Sleep, 1000
-;     SendInput, e
-;     Sleep, %sleepPerf%
-;     startUINav()
-;     repeatKey("esc", 2)
-;     Sleep, %sleepPerf%
-;     if(isCraftingOpen()) {
-;         index := selectCraftableItem(category, item)
-;         Sleep, 1000
-;         SendInput, f
-;         Sleep, 1000
-;         SendInput, e
-;         sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentCraftingItem["time"] . "`` minutes.")
-;     }
-;     Sleep, 500
-;     startUINav()
+    ; loop back to start of queue if we reach the end
+    if(autocraftingQueueIndex > autocraftingQueue.Length()) {
+        autocraftingQueueIndex := 1
+    }
+
+    item := autocraftingQueue[autocraftingQueueIndex]
+    category := []
+    
+    ; from gear shop
+    ; 900ms - seed crafting
+    ; 1200ms - gear crafting
+    walkTime := 900
+    
+    ; find which crafting category the item is in
+    if(findScuffedIndex(acLUT.plants, item) != 0) {
+        category := acLUT.plants
+        walkTime := 900
+    } else {
+        category := acLUT.gear
+        walkTime := 1200
+    }
+
+    categoryIndex := findScuffedIndex(category, item)
+    
+    currentCraftingItem := category[categoryIndex].Clone()
+
+    tooltipLog("Going to crafting...")
+    
+    ; note to self: if you get reports where the egg shop doesnt close and then starts doing random stuff, its probably because of this
+    recalibrateCameraDistance()
+    holdKey("down", walkTime)
+
+    ; clear any incomplete crafting, claim crafting that completed, and open crafting menu
+    SendInput, c
+    Sleep, %sleepPerf%
+    SendInput, e
+    Sleep, 1000
+    SendInput, e
+    Sleep, %sleepPerf%
+    startUINav()
+    repeatKey("esc", 2)
+    Sleep, %sleepPerf%
+    ; if crafting is opened, select the item, input the items, and start crafting
+    if(isCraftingOpen()) {
+        index := selectCraftableItem(category, item)
+        Sleep, 1000
+        SendInput, f
+        Sleep, 1000
+        SendInput, e
+        sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentCraftingItem["time"] . "`` minutes.")
+    }
+    Sleep, 500
+    startUINav()
 
 WaitForNextCycle:
+    ; reset for next run and show the timer
     SafeMoveRelative(0.5, 0.5)
     finished := true
     cycleCount += 1
@@ -319,10 +351,13 @@ tpToGear() {
 }
 
 reconnect() {
+    ; close the game
     WinClose, ahk_exe RobloxPlayerBeta.exe
     Sleep, 1000
     WinClose, ahk_exe RobloxPlayerBeta.exe
     Sleep, 3000
+
+    ; wait for router to come back online (only if internet was lost)
     if(longRecon) {
         Sleep, 180000 ; 3 minutes
         longRecon := false
@@ -335,6 +370,7 @@ reconnect() {
         MsgBox, 4112, No Private Server Link, No valid private server link was provided! Cannot restart the macro!
     }
 
+    ; wait for loading screen to load
     Sleep, 45000
     SendInput, {tab}
     Sleep, 1000
@@ -345,38 +381,41 @@ reconnect() {
     Gosub, Alignment
 }
 
+; safeguard to close the macro if the game window is closed
 exitIfWindowDies() {
     if(!WinExist("ahk_exe RobloxPlayerBeta.exe")) {
         Gosub, Close
     }
 }
 
-; isCraftingOpen() {
-;     startXPercent := 43
-;     startYPercent := 27
-;     endXPercent := 72
-;     endYPercent := 82
+; find if crafting menu is open by looking for the color of the text
+isCraftingOpen() {
+    startXPercent := 43
+    startYPercent := 27
+    endXPercent := 72
+    endYPercent := 82
 
-;     CoordMode, Pixel, Screen
+    CoordMode, Pixel, Screen
 
-;     x1 := Round((startXPercent / 100) * A_ScreenWidth)
-;     y1 := Round((startYPercent / 100) * A_ScreenHeight)
-;     x2 := Round((endXPercent / 100) * A_ScreenWidth)
-;     y2 := Round((endYPercent / 100) * A_ScreenHeight)
+    x1 := Round((startXPercent / 100) * A_ScreenWidth)
+    y1 := Round((startYPercent / 100) * A_ScreenHeight)
+    x2 := Round((endXPercent / 100) * A_ScreenWidth)
+    y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
-;     ImageSearch, px, py, x1, y1, x2, y2, *10 images/crafting_color.png
-;     finalX := px + (0.01 * A_ScreenWidth)
-;     finalY := py + (0.01 * A_ScreenHeight)
-;     if(ErrorLevel = 0) {
-;         return true
-;     } else if (ErrorLevel = 2) {
-;         tooltipLog("Error: Failed to find search image (Redownload Macro!)")
-;         sendDiscordMessage("Failed to find search image, __**Redownload the Macro**__!", 16711680)
-;         Gosub, Close
-;     }
-;     return false
-; }
+    ImageSearch, px, py, x1, y1, x2, y2, *10 images/crafting_color.png
+    finalX := px + (0.01 * A_ScreenWidth)
+    finalY := py + (0.01 * A_ScreenHeight)
+    if(ErrorLevel = 0) {
+        return true
+    } else if (ErrorLevel = 2) {
+        tooltipLog("Error: Failed to find search image (Redownload Macro!)")
+        sendDiscordMessage("Failed to find search image, __**Redownload the Macro**__!", 16711680)
+        Gosub, Close
+    }
+    return false
+}
 
+; show the timers for when the next cycles are
 ShowTimeTip:
     Gui, Submit, NoHide  ; Ensure checkbox state is current
 
@@ -402,16 +441,17 @@ ShowTimeTip:
 
     if (SecondsUntil5 < 3 || adminAbuse) {
         finished := false
-        ; if(currentCraftingItem["name"] != "") {
-        ;     currentCraftingItem["time"] -= 5
-        ;     sendDiscordMessage("Crafting " . currentCraftingItem["name"] . "... " . (currentCraftingItem["time"] > 0 ? "Will be complete in approximately ``" . currentCraftingItem["time"] . "`` minutes." : "It is now complete!"))
-        ; }
+        if(currentCraftingItem["name"] != "") {
+            currentCraftingItem["time"] -= 5
+            sendDiscordMessage("Crafting " . currentCraftingItem["name"] . "... " . (currentCraftingItem["time"] > 0 ? "Will be complete in approximately ``" . currentCraftingItem["time"] . "`` minutes." : "It is now complete!"))
+        }
         recalibrateCameraDistance()
         Gosub, Alignment
     }
 Return
 
-goShopping(arr, allArr, spamCount := 50) {
+; LETS GO GAMBL- i mean shopping
+goShopping(arr, allArr, spamCount := 30) {
     keyEncoder("RRRR")
     repeatKey("Up", 40)
     keyEncoder("RRDRD")
@@ -430,6 +470,7 @@ goShopping(arr, allArr, spamCount := 50) {
     keyEncoder("RRDRLRWE")
 }
 
+; go shopping for eggs
 goShoppingEgg(arr, allArr) {
     keyEncoder("RRRR")
     repeatKey("Up", 40)
@@ -465,6 +506,7 @@ buyAllAvailable(spamCount := 50, item := "") {
     repeatKey("Down")
 }
 
+; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
     keyEncoder("RRRRUWWWEWEWWW")
     repeatKey("up", 40)
@@ -802,7 +844,7 @@ ShowGui:
     groupBoxW := 490
     groupBoxH := 320
 
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Ping List|Settings|Credits
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Ping List|Settings|Credits
 
     Gui, Tab, Seeds
     Gui, Font, s10
@@ -859,34 +901,34 @@ ShowGui:
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateEggState veggCheckboxes%A_Index% Checked%isChecked%, % egg
     }
 
-    ; Gui, Tab, Crafting
-    ; Gui, Font, s10
-    ; Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
+    Gui, Tab, Crafting
+    Gui, Font, s10
+    Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
 
-    ; paddingY := groupBoxY + 15
-    ; paddingX := groupBoxX + 25
-    ; cols := 1
-    ; itemH := 22
-    ; Loop % gearCraftables.Length() {
-    ;     row := Mod(A_Index - 1, Ceil(gearCraftables.Length() / cols))
-    ;     col := Floor((A_Index - 1) / Ceil(gearCraftables.Length() / cols))
-    ;     x := paddingX + (itemW * col)
-    ;     y := paddingY + (itemH * row)
-    ;     gear := gearCraftables[A_Index]
-    ;     isChecked := arrContains(autocraftingQueue, gear) ? 1 : 0
-    ;     Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vgearACCheckboxes%A_Index% Checked%isChecked%, % gear
-    ; }
+    paddingY := groupBoxY + 15
+    paddingX := groupBoxX + 25
+    cols := 1
+    itemH := 22
+    Loop % gearCraftables.Length() {
+        row := Mod(A_Index - 1, Ceil(gearCraftables.Length() / cols))
+        col := Floor((A_Index - 1) / Ceil(gearCraftables.Length() / cols))
+        x := paddingX + (itemW * col)
+        y := paddingY + (itemH * row)
+        gear := gearCraftables[A_Index]
+        isChecked := arrContains(autocraftingQueue, gear) ? 1 : 0
+        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vgearACCheckboxes%A_Index% Checked%isChecked%, % gear
+    }
 
-    ; itemH := 28
-    ; Loop % plantCraftables.Length() {
-    ;     row := Mod(A_Index - 1, Ceil(plantCraftables.Length() / cols))
-    ;     col := Floor((A_Index - 1) / Ceil(plantCraftables.Length() / cols)) + 1
-    ;     x := paddingX + (itemW * col)
-    ;     y := paddingY + (itemH * row)
-    ;     plant := plantCraftables[A_Index]
-    ;     isChecked := arrContains(autocraftingQueue, plant) ? 1 : 0
-    ;     Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vplantACCheckboxes%A_Index% Checked%isChecked%, % plant
-    ; }
+    itemH := 28
+    Loop % plantCraftables.Length() {
+        row := Mod(A_Index - 1, Ceil(plantCraftables.Length() / cols))
+        col := Floor((A_Index - 1) / Ceil(plantCraftables.Length() / cols)) + 1
+        x := paddingX + (itemW * col)
+        y := paddingY + (itemH * row)
+        plant := plantCraftables[A_Index]
+        isChecked := arrContains(autocraftingQueue, plant) ? 1 : 0
+        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vplantACCheckboxes%A_Index% Checked%isChecked%, % plant
+    }
 
     ; ---
 
@@ -1020,7 +1062,7 @@ loadValues() {
     IniRead, currentlyAllowedGearStr, config.ini, PersistentData, currentlyAllowedGear
     IniRead, currentlyAllowedEggsStr, config.ini, PersistentData, currentlyAllowedEggs
     IniRead, currentlyAllowedEventStr, config.ini, PersistentData, currentlyAllowedEvent
-    ; IniRead, autocraftingQueueStr, config.ini, PersistentData, autocraftingQueue
+    IniRead, autocraftingQueueStr, config.ini, PersistentData, autocraftingQueue
     IniRead, pingListStr, config.ini, PersistentData, pingList
 
     if(pingListStr != "" and pingListStr != "ERROR") {
@@ -1049,10 +1091,10 @@ loadValues() {
     else
         currentlyAllowedEggs := []
 
-    ; if (autocraftingQueueStr != "")
-    ;     autocraftingQueue := StrSplit(autocraftingQueueStr, ", ")
-    ; else
-    ;     autocraftingQueue := []
+    if (autocraftingQueueStr != "")
+        autocraftingQueue := StrSplit(autocraftingQueueStr, ", ")
+    else
+        autocraftingQueue := []
 }
 
 saveValues() {
@@ -1066,13 +1108,13 @@ saveValues() {
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
     currentlyAllowedEggsStr := arrayToString(currentlyAllowedEggs)
     pingListStr := arrayToString(pingList)
-    ; autocraftingQueueStr := arrayToString(autocraftingQueue)
+    autocraftingQueueStr := arrayToString(autocraftingQueue)
 
     IniWrite, %currentlyAllowedSeedsStr%, config.ini, PersistentData, currentlyAllowedSeeds
     IniWrite, %currentlyAllowedGearStr%, config.ini, PersistentData, currentlyAllowedGear
     IniWrite, %currentlyAllowedEggsStr%, config.ini, PersistentData, currentlyAllowedEggs
     IniWrite, %pingListStr%, config.ini, PersistentData, pingList
-    ; IniWrite, %autocraftingQueueStr%, config.ini, PersistentData, autocraftingQueue
+    IniWrite, %autocraftingQueueStr%, config.ini, PersistentData, autocraftingQueue
 }
 
 ToggleAllSeeds:
@@ -1135,21 +1177,21 @@ UpdateEggState:
     saveValues()
 return
 
-; UpdateAutoCraftingState:
-;     Gui Submit, NoHide
-;     autocraftingQueue := []
-;     Loop, % gearCraftables.Length() {
-;         if(gearACCheckboxes%A_Index% = 1)
-;             autocraftingQueue.Push(gearCraftables[A_Index])
+UpdateAutoCraftingState:
+    Gui Submit, NoHide
+    autocraftingQueue := []
+    Loop, % gearCraftables.Length() {
+        if(gearACCheckboxes%A_Index% = 1)
+            autocraftingQueue.Push(gearCraftables[A_Index])
 
-;     }
-;     Loop, % plantCraftables.Length() {
-;         if(plantACCheckboxes%A_Index% = 1)
-;             autocraftingQueue.Push(plantCraftables[A_Index])
+    }
+    Loop, % plantCraftables.Length() {
+        if(plantACCheckboxes%A_Index% = 1)
+            autocraftingQueue.Push(plantCraftables[A_Index])
 
-;     }
-;     saveValues()
-; return
+    }
+    saveValues()
+return
 
 Close:
     sendDiscordMessage("Macro Exited!", 0, true)
