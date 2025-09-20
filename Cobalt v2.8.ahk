@@ -25,7 +25,7 @@ global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
     , "Grandmaster Sprinkler", "Levelup Lollipop"]
 
 ; Edit this to change the eggs
-global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendarry Egg", "Mythical Egg", "Bug Egg"]
+global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bug Egg"]
 
 ; Edit this to change what you want to be pinged for
 global pingList := ["Beanstalk Seed", "Ember Lily", "Sugar Apple", "Burning Bud","Giant Pinecone Seed","Elder Strawberry", "Master Sprinkler", "Grandmaster Sprinkler", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Mythical Egg", "Paradise Egg", "Bug Egg"]
@@ -61,7 +61,7 @@ global crashCounter := 0
 
 global perfSetting := "Default"
 global autocraftingQueue := []
-global currentCraftingItem := {}
+global currentACItem := {}
 global autocraftingQueueIndex := 1
 
 global plantCraftables := []
@@ -79,8 +79,12 @@ StartMacro:
     if(started = 0) {
         Return
     }
-    ; focus the window so we can actually work the macro 
+    ; focus the window so we can actually work the macro
     WinActivate, ahk_exe RobloxPlayerBeta.exe
+    ; smart buying coming soon :)
+    ; goShopping(currentlyAllowedSeeds, seedItems)
+    ; sendDiscordQueue("Seed Shop")
+    ; Return
     sendDiscordMessage("Macro started!", 65280)
     finished := false
 
@@ -103,7 +107,7 @@ Alignment:
     Sleep, 500
     repeatKey("tab")
     Sleep, 500
-    keyEncoder("RR")
+    keyEncoder("UUUUUUUUUUURR")
     Sleep, 500
     repeatKey("esc")
     Sleep, 500
@@ -263,73 +267,86 @@ EggCycle:
 
 Autocraft:
     exitIfWindowDies()
-    if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && autocraftingQueue.Length() > 0) {
-        tpToGear()
-    }
-    if(autocraftingQueue.Length() = 0) {
-        tooltipLog("No items in autocrafting queue, skipping autocrafting...")
+
+    ; diagram
+    ; 1. check if crafting is in progress, if so, wait for next cycle to and check again
+    ; 2. if not, reset crafting parameters and get next item in queue, looping back to start if at end of queue
+    ; 3. walk to crafting table, open crafting menu, select item, start crafting
+
+    ; if the item is still being crafted, wait for the next cycle
+    if(currentACItem["time"] > 0 && currentACItem.Count() > 0) {
+        Gosub, WaitForNextCycle
         Return
     }
 
-    ; if we have a current item, check if its done
-    if(currentCraftingItem["time"] < 0) {
-        currentCraftingItem := {}
+    ; if the previous shops did not happen (because no gear or eggs were selected),
+    ; tp to gear shop so that you can still go craft
+    if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && autocraftingQueue.Length() > 0) {
+        tpToGear()
+    }
+
+    ; if something is in the queue, start crafting it, otherwise skip, prob unnecessary but i like safety
+    if(autocraftingQueue.Length() > 0) {
+        ; reset parameters for next crafting
+        currentACItem := {}
         autocraftingQueueIndex += 1
-    }
 
-    ; loop back to start of queue if we reach the end
-    if(autocraftingQueueIndex > autocraftingQueue.Length()) {
-        autocraftingQueueIndex := 1
-    }
+        ; loop back to start of queue if we reach the end
+        if(autocraftingQueueIndex > autocraftingQueue.Length()) {
+            autocraftingQueueIndex := 1
+        }
 
-    item := autocraftingQueue[autocraftingQueueIndex]
-    category := []
-    
-    ; from gear shop
-    ; 900ms - seed crafting
-    ; 1200ms - gear crafting
-    walkTime := 900
-    
-    ; find which crafting category the item is in
-    if(findScuffedIndex(acLUT.plants, item) != 0) {
-        category := acLUT.plants
+        item := autocraftingQueue[autocraftingQueueIndex]
+        category := []
+
+        ; from gear shop
+        ; 900ms - seed crafting
+        ; 1200ms - gear crafting
         walkTime := 900
-    } else {
-        category := acLUT.gear
-        walkTime := 1200
-    }
 
-    categoryIndex := findScuffedIndex(category, item)
-    
-    currentCraftingItem := category[categoryIndex].Clone()
+        ; find which crafting category the item is in
+        if(findScuffedIndex(acLUT.plants, item) != 0) {
+            category := acLUT.plants
+            walkTime := 900
+        } else {
+            category := acLUT.gear
+            walkTime := 1200
+        }
 
-    tooltipLog("Going to crafting...")
-    
-    ; note to self: if you get reports where the egg shop doesnt close and then starts doing random stuff, its probably because of this
-    recalibrateCameraDistance()
-    holdKey("down", walkTime)
+        categoryIndex := findScuffedIndex(category, item)
 
-    ; clear any incomplete crafting, claim crafting that completed, and open crafting menu
-    SendInput, c
-    Sleep, %sleepPerf%
-    SendInput, e
-    Sleep, 1000
-    SendInput, e
-    Sleep, %sleepPerf%
-    startUINav()
-    repeatKey("esc", 2)
-    Sleep, %sleepPerf%
-    ; if crafting is opened, select the item, input the items, and start crafting
-    if(isCraftingOpen()) {
-        index := selectCraftableItem(category, item)
-        Sleep, 1000
-        SendInput, f
+        currentACItem := category[categoryIndex].Clone()
+
+        ; actually start the crafting process
+        tooltipLog("Going to crafting...")
+
+        ; note to self: if you get reports where the egg shop doesnt close and then starts doing random stuff, its probably because of this
+        recalibrateCameraDistance()
+        holdKey("down", walkTime)
+
+        ; 1. clear any incomplete crafting, 2. claim crafting that completed, and 3. open crafting menu
+        ; the double e works fine since pressing it twice just reopens the shop anyways
+        SendInput, c
+        Sleep, %sleepPerf%
+        SendInput, e
         Sleep, 1000
         SendInput, e
-        sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentCraftingItem["time"] . "`` minutes.")
+        Sleep, %sleepPerf%
+        startUINav()
+        repeatKey("esc", 2) ; close robux ui if it opened
+        Sleep, %sleepPerf%
+        ; if crafting is opened, select the item, input the items, and start crafting
+        if(isCraftingOpen()) {
+            index := selectCraftableItem(category, item)
+            Sleep, 1000
+            SendInput, f ; fill items
+            Sleep, 1000
+            SendInput, e ; start crafting
+            sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentACItem["time"] . "`` minutes.")
+        }
+        Sleep, 500
+        startUINav()
     }
-    Sleep, 500
-    startUINav()
 
 WaitForNextCycle:
     ; reset for next run and show the timer
@@ -390,6 +407,10 @@ exitIfWindowDies() {
 
 ; find if crafting menu is open by looking for the color of the text
 isCraftingOpen() {
+    return genericImageSearch("crafting_color.png")
+}
+
+genericImageSearch(imagePath) {
     startXPercent := 43
     startYPercent := 27
     endXPercent := 72
@@ -397,14 +418,13 @@ isCraftingOpen() {
 
     CoordMode, Pixel, Screen
 
+    ; find boundary percents according to screen size
     x1 := Round((startXPercent / 100) * A_ScreenWidth)
     y1 := Round((startYPercent / 100) * A_ScreenHeight)
     x2 := Round((endXPercent / 100) * A_ScreenWidth)
     y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
-    ImageSearch, px, py, x1, y1, x2, y2, *10 images/crafting_color.png
-    finalX := px + (0.01 * A_ScreenWidth)
-    finalY := py + (0.01 * A_ScreenHeight)
+    ImageSearch, px, py, x1, y1, x2, y2, *10 images/%imagePath%
     if(ErrorLevel = 0) {
         return true
     } else if (ErrorLevel = 2) {
@@ -419,12 +439,14 @@ isCraftingOpen() {
 ShowTimeTip:
     Gui, Submit, NoHide  ; Ensure checkbox state is current
 
+    ; 5 minute timer
     SecondsUntil5 := 300 - (Mod(A_Min, 5) * 60 + A_Sec)
     SecondsUntil5 := Mod(SecondsUntil5, 301)
     RemainingMins5 := Floor(SecondsUntil5 / 60)
     RemainingSecs5 := Mod(SecondsUntil5, 60)
     FormattedTime5 := Format("{:02}:{:02}", RemainingMins5, RemainingSecs5)
 
+    ; 30 minute timer (egg)
     SecondsUntil30 := 1800 - (Mod(A_Min, 30) * 60 + A_Sec)
     SecondsUntil30 := Mod(SecondsUntil30, 1801)
     RemainingMins30 := Floor(SecondsUntil30 / 60)
@@ -441,9 +463,9 @@ ShowTimeTip:
 
     if (SecondsUntil5 < 3 || adminAbuse) {
         finished := false
-        if(currentCraftingItem["name"] != "") {
-            currentCraftingItem["time"] -= 5
-            sendDiscordMessage("Crafting " . currentCraftingItem["name"] . "... " . (currentCraftingItem["time"] > 0 ? "Will be complete in approximately ``" . currentCraftingItem["time"] . "`` minutes." : "It is now complete!"))
+        if(currentACItem["name"] != "") {
+            currentACItem["time"] -= 5
+            sendDiscordMessage(currentACItem["name"] . " " . (currentACItem["time"] > 0 ? "will be done crafting in approximately ``" . currentACItem["time"] . "`` minutes..." : "is now complete!"))
         }
         recalibrateCameraDistance()
         Gosub, Alignment
@@ -493,7 +515,7 @@ goShoppingEgg(arr, allArr) {
     keyEncoder("UUULLLLLLLLURRRRDRLRE")
 }
 
-buyAllAvailable(spamCount := 50, item := "") {
+buyAllAvailable(spamCount := 30, item := "") {
     repeatKey("Enter")
     repeatKey("Down")
     if(isThereStock()) {
@@ -505,6 +527,27 @@ buyAllAvailable(spamCount := 50, item := "") {
     }
     repeatKey("Down")
 }
+
+; buyAllAvailableSmart(spamCount := 30, item := "") {
+;     repeatKey("Enter")
+;     repeatKey("Down")
+;     if(isThereStock()) {
+;         if(item != "Trowel") {
+;             repeatKey("Left")
+;         }
+;         count := 0
+;         Loop, % spamCount {
+;             if(isThereNoStock()) {
+;                 Break
+;             }
+;             SendInput, {Enter}
+;             Sleep, %sleepPerf%
+;             count += 1
+;         }
+;         messageQueue.Push("Bought " . count . " " . item . "s!")
+;     }
+;     repeatKey("Down")
+; }
 
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
@@ -518,8 +561,13 @@ selectCraftableItem(shopObj, item) {
 }
 
 isThereStock() {
-    Sleep, 200
+    Sleep, 200z
     return colorDetect(0x20b41c) || colorDetect(0x26EE26)
+}
+
+isThereNoStock() {
+    ; using image search since gray is a very common screen color
+    return genericImageSearch("no_stock.png") || genericImageSearch("no_stock_hover.png")
 }
 
 isShopOpen() {
@@ -544,7 +592,7 @@ colorDetect(c, v := 5) {
     y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
     PixelSearch, px, py, x1, y1, x2, y2, c, v, Fast RGB
-    ; MouseMove, px, py ; uncomment to test colo(u)r detection
+    MouseMove, px, py ; uncomment to test colo(u)r detection
     if(ErrorLevel = 0) {
         return true
     } else if (ErrorLevel = 2) {
@@ -833,6 +881,7 @@ ShowGui:
     style := style & ~0xC00000 & ~0x800000 & ~0x100000 & ~0x40000
     DllCall("SetWindowLong", "Ptr", hwnd, "Int", -16, "UInt", style)
     DllCall("SetWindowPos", "Ptr", hwnd, "Ptr", 0, 0, 0, 0, 0, 0, 0x27)
+
     cols := 3
     itemW := 150
     itemH := 28
@@ -846,6 +895,7 @@ ShowGui:
 
     Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Ping List|Settings|Credits
 
+    ; seeds
     Gui, Tab, Seeds
     Gui, Font, s10
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
@@ -854,7 +904,7 @@ ShowGui:
 
     paddingY := groupBoxY + 50
     paddingX := groupBoxX + 25
-    Loop % seedItems.Length() {
+    Loop % seedItems.Length() { ; generate buttons
         row := Mod(A_Index - 1, Ceil(seedItems.Length() / cols))
         col := Floor((A_Index - 1) / Ceil(seedItems.Length() / cols))
         x := paddingX + (itemW * col)
@@ -863,6 +913,7 @@ ShowGui:
         isChecked := arrContains(currentlyAllowedSeeds, seed) ? 1 : 0
         Gui, Add, Checkbox, x%x% y%y% w143 h23 gUpdateSeedState vseedCheckboxes%A_Index% Checked%isChecked%, % seed
     }
+    ; this format repeats for a lot of the tabs, just different variables and positions
 
     Gui, Tab, Gear
     Gui, Font, s10
@@ -1182,12 +1233,12 @@ UpdateAutoCraftingState:
     autocraftingQueue := []
     Loop, % gearCraftables.Length() {
         if(gearACCheckboxes%A_Index% = 1)
-            autocraftingQueue.Push(gearCraftables[A_Index])
+            insertByReferenceOrder(autocraftingQueue, gearCraftables[A_Index], gearCraftables)
 
     }
     Loop, % plantCraftables.Length() {
         if(plantACCheckboxes%A_Index% = 1)
-            autocraftingQueue.Push(plantCraftables[A_Index])
+            insertByReferenceOrder(autocraftingQueue, plantCraftables[A_Index], plantCraftables)
 
     }
     saveValues()
