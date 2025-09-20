@@ -15,6 +15,7 @@ global seedItems := ["Carrot Seed", "Strawberry Seed", "Blueberry Seed"
     , "Dragon Fruit Seed", "Mango Seed", "Grape Seed", "Mushroom Seed"
     , "Pepper Seed", "Cacao Seed", "Beanstalk Seed", "Ember Lily"
     , "Sugar Apple", "Burning Bud", "Giant Pinecone Seed", "Elder Strawberry","Romanesco"]
+global t2SeedItems := ["Broccoli Seed", "Potato Seed", "Brussels Sprout Seed", "Cocomango Seed"]
 
 ; Edit this to change the gear
 global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
@@ -26,6 +27,7 @@ global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
 
 ; Edit this to change the eggs
 global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bug Egg"]
+global t2EggItems := ["Pet Name Reroller", "Pet Lead"]
 
 ; Edit this to change what you want to be pinged for
 global pingList := ["Beanstalk Seed", "Ember Lily", "Sugar Apple", "Burning Bud","Giant Pinecone Seed","Elder Strawberry", "Master Sprinkler", "Grandmaster Sprinkler", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Mythical Egg", "Paradise Egg", "Bug Egg"]
@@ -39,8 +41,10 @@ allList.Push(gearItems*)
 allList.Push(eggItems*)
 
 global currentlyAllowedSeeds := []
+global currentlyAllowedT2Seeds := []
 global currentlyAllowedGear := []
 global currentlyAllowedEggs := []
+global currentlyAllowedT2Eggs := []
 global currentlyAllowedEvent := []
 
 global privateServerLink := ""
@@ -184,8 +188,26 @@ SeedCycle:
     Sleep, 3000
     if(isShopOpen()) {
         ; we now have the carrot selected, start seed nav
+        keyEncoder("RRRR")
+        repeatKey("Up", 40)
+        keyEncoder("RRDRDRUWEW")
+        startUINav()
+        startUINav()
+        keyEncoder("RRRR")
+        repeatKey("Up", 40)
+        keyEncoder("RRDRD")
         tooltipLog("Shopping for seeds...")
         goShopping(currentlyAllowedSeeds, seedItems)
+        repeatKey("Up", 40)
+        keyEncoder("RRDDDEWUEWEWRLRWE")
+        startUINav()
+        startUINav()
+        keyEncoder("RRRR")
+        repeatKey("Up", 40)
+        keyEncoder("RRDRD")
+        goShopping(currentlyAllowedT2Seeds, t2SeedItems)
+        repeatKey("Up", 40)
+        keyEncoder("RRDRLRWE")
         sendDiscordQueue("Seed Shop")
         startUINav()
     } else {
@@ -209,7 +231,12 @@ GearCycle:
     if(isShopOpen()) {
         startUINav()
         tooltipLog("Shopping for gear...")
+        keyEncoder("RRRR")
+        repeatKey("Up", 40)
+        keyEncoder("RRDRD")
         goShopping(currentlyAllowedGear, gearItems, 20)
+        repeatKey("Up", 40)
+        keyEncoder("RRDRLRWE")
         sendDiscordQueue("Gear Shop")
         startUINav()
         Sleep, %sleepPerf%
@@ -247,8 +274,26 @@ EggCycle:
         if(isShopOpen()) {
             startUINav()
             tooltipLog("Shopping for eggs...")
+            keyEncoder("RRRR")
+            repeatKey("Up", 40)
+            startUINav()
+            startUINav()
+            keyEncoder("UULLLLUUURRRRRDDDEWUUEWEW")
             ; a separate function is used because the egg shop likes to be special
             goShoppingEgg(currentlyAllowedEggs, eggItems)
+            repeatKey("Up", 40)
+            startUINav()
+            startUINav()
+            keyEncoder("UUULLLLLLLLURRRRDDRLRUWEW") ; thankfully this seems to close if you dont have it unlocked
+            startUINav()
+            startUINav()
+            goShoppingEgg(currentlyAllowedT2, eggItems)
+
+            ; close
+            repeatKey("Up", 40)
+            startUINav()
+            startUINav()
+            keyEncoder("UUULLLLLLLLURRRRDRLRE")
             sendDiscordQueue("Egg Shop")
             Sleep, 500
             startUINav()
@@ -474,9 +519,6 @@ Return
 
 ; LETS GO GAMBL- i mean shopping
 goShopping(arr, allArr, spamCount := 30) {
-    keyEncoder("RRRR")
-    repeatKey("Up", 40)
-    keyEncoder("RRDRD")
     for index, item in allArr {
 
         if(!arrContains(arr, item)) {
@@ -488,17 +530,10 @@ goShopping(arr, allArr, spamCount := 30) {
     if(messageQueue.Length() = 0) {
         messageQueue.Push("Bought nothing...")
     }
-    repeatKey("Up", 40)
-    keyEncoder("RRDRLRWE")
 }
 
 ; go shopping for eggs
 goShoppingEgg(arr, allArr) {
-    keyEncoder("RRRR")
-    repeatKey("Up", 40)
-    startUINav()
-    startUINav()
-    keyEncoder("UULLLLUUURRRRRDD")
     for index, item in allArr {
         if(!arrContains(arr, item)) {
             repeatKey("Down")
@@ -509,10 +544,6 @@ goShoppingEgg(arr, allArr) {
     if(messageQueue.Length() = 0) {
         messageQueue.Push("Bought nothing...")
     }
-    repeatKey("Up", 40)
-    startUINav()
-    startUINav()
-    keyEncoder("UUULLLLLLLLURRRRDRLRE")
 }
 
 buyAllAvailable(spamCount := 30, item := "") {
@@ -561,7 +592,7 @@ selectCraftableItem(shopObj, item) {
 }
 
 isThereStock() {
-    Sleep, 200z
+    Sleep, 200
     return colorDetect(0x20b41c) || colorDetect(0x26EE26)
 }
 
@@ -592,7 +623,7 @@ colorDetect(c, v := 5) {
     y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
     PixelSearch, px, py, x1, y1, x2, y2, c, v, Fast RGB
-    MouseMove, px, py ; uncomment to test colo(u)r detection
+    ; MouseMove, px, py ; uncomment to test colo(u)r detection
     if(ErrorLevel = 0) {
         return true
     } else if (ErrorLevel = 2) {
@@ -884,7 +915,7 @@ ShowGui:
 
     cols := 3
     itemW := 150
-    itemH := 28
+    itemH := 25
     paddingX := 20
     paddingY := 80
 
@@ -893,7 +924,7 @@ ShowGui:
     groupBoxW := 490
     groupBoxH := 320
 
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Ping List|Settings|Credits
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Ping List|Settings|Credits
 
     ; seeds
     Gui, Tab, Seeds
@@ -981,6 +1012,32 @@ ShowGui:
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vplantACCheckboxes%A_Index% Checked%isChecked%, % plant
     }
 
+    Gui, Tab, T2 Items
+    Gui, Font, s10
+    Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
+
+    Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllT2Items gToggleAllT2Items cFFFF28, Select All T2 Items
+
+    paddingY := groupBoxY + 50
+    paddingX := groupBoxX + 25
+    Loop % t2SeedItems.Length() {
+        row := Mod(A_Index - 1, Ceil(t2SeedItems.Length() / cols))
+        col := 0
+        x := paddingX + (itemW * col)
+        y := paddingY + (itemH * row)
+        seed := t2SeedItems[A_Index]
+        isChecked := arrContains(currentlyAllowedT2Seeds, seed) ? 1 : 0
+        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateSeedState vt2SeedCheckboxes%A_Index% Checked%isChecked%, % seed
+    }
+    Loop % t2EggItems.Length() {
+        row := Mod(A_Index - 1, Ceil(t2EggItems.Length() / cols))
+        col := 1
+        x := paddingX + (itemW * col)
+        y := paddingY + (itemH * row)
+        egg := t2EggItems[A_Index]
+        isChecked := arrContains(currentlyAllowedT2Eggs, egg) ? 1 : 0
+        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateEggState vt2EggCheckboxes%A_Index% Checked%isChecked%, % egg
+    }
     ; ---
 
     Gui, Tab, Ping List
@@ -1110,8 +1167,10 @@ loadValues() {
     AutoTrim, Off
 
     IniRead, currentlyAllowedSeedsStr, config.ini, PersistentData, currentlyAllowedSeeds
+    IniRead, currentlyAllowedT2SeedsStr, config.ini, PersistentData, currentlyAllowedT2Seeds
     IniRead, currentlyAllowedGearStr, config.ini, PersistentData, currentlyAllowedGear
     IniRead, currentlyAllowedEggsStr, config.ini, PersistentData, currentlyAllowedEggs
+    IniRead, currentlyAllowedT2EggsStr, config.ini, PersistentData, currentlyAllowedT2Eggs
     IniRead, currentlyAllowedEventStr, config.ini, PersistentData, currentlyAllowedEvent
     IniRead, autocraftingQueueStr, config.ini, PersistentData, autocraftingQueue
     IniRead, pingListStr, config.ini, PersistentData, pingList
@@ -1130,6 +1189,16 @@ loadValues() {
         currentlyAllowedSeeds := StrSplit(currentlyAllowedSeedsStr, ", ")
     else
         currentlyAllowedSeeds := []
+
+    if (currentlyAllowedT2SeedsStr != "")
+        currentlyAllowedT2Seeds := StrSplit(currentlyAllowedT2SeedsStr, ", ")
+    else
+        currentlyAllowedT2Seeds := []
+
+    if (currentlyAllowedT2EggsStr != "")
+        currentlyAllowedT2Eggs := StrSplit(currentlyAllowedT2EggsStr, ", ")
+    else
+        currentlyAllowedT2Eggs := []
 
     ; TODO: re-enable these when gear and egg GUI are implemented
     if (currentlyAllowedGearStr != "")
@@ -1158,12 +1227,16 @@ saveValues() {
     currentlyAllowedSeedsStr := arrayToString(currentlyAllowedSeeds)
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
     currentlyAllowedEggsStr := arrayToString(currentlyAllowedEggs)
+    currentlyAllowedT2SeedsStr := arrayToString(currentlyAllowedT2Seeds)
+    currentlyAllowedT2EggsStr := arrayToString(currentlyAllowedT2Eggs)
     pingListStr := arrayToString(pingList)
     autocraftingQueueStr := arrayToString(autocraftingQueue)
 
     IniWrite, %currentlyAllowedSeedsStr%, config.ini, PersistentData, currentlyAllowedSeeds
     IniWrite, %currentlyAllowedGearStr%, config.ini, PersistentData, currentlyAllowedGear
     IniWrite, %currentlyAllowedEggsStr%, config.ini, PersistentData, currentlyAllowedEggs
+    IniWrite, %currentlyAllowedT2SeedsStr%, config.ini, PersistentData, currentlyAllowedT2Seeds
+    IniWrite, %currentlyAllowedT2EggsStr%, config.ini, PersistentData, currentlyAllowedT2Eggs
     IniWrite, %pingListStr%, config.ini, PersistentData, pingList
     IniWrite, %autocraftingQueueStr%, config.ini, PersistentData, autocraftingQueue
 }
@@ -1224,6 +1297,34 @@ UpdateEggState:
         if(eggCheckboxes%A_Index% = 1)
             insertByReferenceOrder(currentlyAllowedEggs, eggItems[A_Index], eggItems)
 
+    }
+    saveValues()
+return
+
+ToggleAllT2Items:
+    GuiControlGet, checkState,, CheckAllT2Items
+    Loop % t2EggItems.Length() {
+        control := "t2EggCheckboxes" A_Index
+        GuiControl,, %control%, %checkState%
+    }
+    Loop % t2SeedItems.Length() {
+        control := "t2SeedCheckboxes" A_Index
+        GuiControl,, %control%, %checkState%
+    }
+    Gosub, UpdateT2ItemsState
+return
+
+UpdateT2ItemsState:
+    Gui Submit, NoHide
+    currentlyAllowedT2Eggs := []
+    currentlyAllowedT2Seeds := []
+    Loop, % t2EggItems.Length() {
+        if(t2EggCheckboxes%A_Index% = 1)
+            insertByReferenceOrder(currentlyAllowedT2Eggs, t2EggItems[A_Index], t2EggItems)
+    }
+    Loop, % t2SeedItems.Length() {
+        if(t2SeedCheckboxes%A_Index% = 1)
+            insertByReferenceOrder(currentlyAllowedT2Seeds, t2SeedItems[A_Index], t2SeedItems)
     }
     saveValues()
 return
