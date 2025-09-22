@@ -1,7 +1,7 @@
 #SingleInstance, force
 #Include, modules/autocrafting_LUT.ahk
 
-global version := "v2.8"
+global version := "v2.8.1"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -37,8 +37,10 @@ global pingList := ["Beanstalk Seed", "Ember Lily", "Sugar Apple", "Burning Bud"
 global allList := []
 
 allList.Push(seedItems*)
+allList.Push(t2SeedItems*)
 allList.Push(gearItems*)
 allList.Push(eggItems*)
+allList.Push(t2EggItems*)
 
 global currentlyAllowedSeeds := []
 global currentlyAllowedT2Seeds := []
@@ -174,7 +176,7 @@ SeedCycle:
     exitIfWindowDies()
 
     ; skip seeds if none are selected
-    if (currentlyAllowedSeeds.Length() = 0) {
+    if (currentlyAllowedSeeds.Length() = 0 && currentlyAllowedT2Seeds.Length() = 0) {
         Gosub, GearCycle
         Return
     }
@@ -188,13 +190,13 @@ SeedCycle:
     Sleep, 3000
     if(isShopOpen()) {
         ; we now have the carrot selected, start seed nav
-if(currentlyAllowedT2Seeds.Length() > 0) {
-        keyEncoder("RRRR")
-        repeatKey("Up", 40)
-        keyEncoder("RRDRDRUWEW")
-        startUINav()
-        startUINav()
-}
+        if(currentlyAllowedT2Seeds.Length() > 0) {
+            keyEncoder("RRRR")
+            repeatKey("Up", 40)
+            keyEncoder("RRDRDRUWEW")
+            startUINav()
+            startUINav()
+        }
         keyEncoder("RRRR")
         repeatKey("Up", 40)
         keyEncoder("RRDRD")
@@ -256,7 +258,7 @@ EggCycle:
         tpToGear()
     }
 
-    if(currentlyAllowedEggs.Length() > 0 && canDoEgg) {
+    if(currentlyAllowedEggs.Length() > 0 || currentlyAllowedT2Eggs.Length() > 0 && canDoEgg) {
         canDoEgg := false
         tooltipLog("Going to egg shop...")
         recalibrateCameraDistance()
@@ -282,8 +284,14 @@ EggCycle:
             repeatKey("Up", 40)
             startUINav()
             startUINav()
-; FIXME: MAKE THIS RESET SHOP AGAIN BACK TO T1
+            ; FIXME: MAKE THIS RESET SHOP AGAIN BACK TO T1
             keyEncoder("UULLLLUUURRRRRDDDEWUUEWEW")
+            if(currentlyAllowedT2Eggs.Length() > 0) {
+                keyEncoder("WRUWEW")
+                startUINav()
+                startUINav()
+                keyEncoder("UULLLLUUURRRRRDD")
+            }
             ; a separate function is used because the egg shop likes to be special
             goShoppingEgg(currentlyAllowedEggs, eggItems)
             if(currentlyAllowedT2Eggs.Length() > 0) {
@@ -333,7 +341,7 @@ Autocraft:
 
     ; if the previous shops did not happen (because no gear or eggs were selected),
     ; tp to gear shop so that you can still go craft
-    if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && currentACItem["time"] > 0 && autocraftingQueue.Length() > 0) {
+    if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && autocraftingQueue.Length() > 0) {
         tpToGear()
     }
 
@@ -1034,7 +1042,7 @@ ShowGui:
         y := paddingY + (itemH * row)
         seed := t2SeedItems[A_Index]
         isChecked := arrContains(currentlyAllowedT2Seeds, seed) ? 1 : 0
-        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateSeedState vt2SeedCheckboxes%A_Index% Checked%isChecked%, % seed
+        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2SeedCheckboxes%A_Index% Checked%isChecked%, % seed
     }
     Loop % t2EggItems.Length() {
         row := Mod(A_Index - 1, Ceil(t2EggItems.Length() / cols))
@@ -1043,7 +1051,7 @@ ShowGui:
         y := paddingY + (itemH * row)
         egg := t2EggItems[A_Index]
         isChecked := arrContains(currentlyAllowedT2Eggs, egg) ? 1 : 0
-        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateEggState vt2EggCheckboxes%A_Index% Checked%isChecked%, % egg
+        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2EggCheckboxes%A_Index% Checked%isChecked%, % egg
     }
     ; ---
 
@@ -1057,6 +1065,8 @@ ShowGui:
         LV_Add("", allList[A_Index]) ; no check state yet
     }
 
+    LV_ModifyCol()
+
     ; now set checkboxes explicitly
     Loop % allList.Length() {
         if arrContains(pingList, allList[A_Index])
@@ -1064,7 +1074,6 @@ ShowGui:
     }
 
     GuiControl, +Redraw, PingListLV  ; resume redraw
-    LV_ModifyCol()
 
     Gui, Tab, Settings
     Gui, Font, s10
@@ -1112,17 +1121,33 @@ ShowGui:
 return
 
 AddToPingList:
-    if (A_GuiEvent == "I")
+    if (A_GuiEvent == "I" && ErrorLevel = 8)
     {
-        row := 0
-        pingList := []
-        Loop {
-            row := LV_GetNext(row, "Checked")
-            if not row
-                Break
-            pingList.Push(allList[row])
+        rowNumber := A_EventInfo  ; Get the number of the row that was changed
+
+        ; Check if the row is NOW checked
+        is_checked := LV_GetNext(rowNumber - 1, "Checked")
+
+        LV_GetText(rowText, rowNumber) ; Get the text of the item
+
+        if (is_checked)
+        {
+            ; The box was CHECKED. Add its text to our array.
+            pingList.Push(rowText)
         }
-        saveValues()
+        else
+        {
+            ; The box was UNCHECKED. Find its text in the array and remove it.
+            for index, value in pingList
+            {
+                if (value = rowText)
+                {
+                    pingList.RemoveAt(index)
+                    break ; Stop searching once we've removed it
+                }
+            }
+        }
+        saveValues() ; Now save the accurately modified list
     }
 return
 
@@ -1192,33 +1217,33 @@ loadValues() {
         uiNavKeybind := "\"
     }
 
-    if (currentlyAllowedSeedsStr != "")
+    if (currentlyAllowedSeedsStr != "" && currentlyAllowedSeedsStr != "ERROR")
         currentlyAllowedSeeds := StrSplit(currentlyAllowedSeedsStr, ", ")
     else
         currentlyAllowedSeeds := []
 
-    if (currentlyAllowedT2SeedsStr != "")
+    if (currentlyAllowedT2SeedsStr != "" && currentlyAllowedT2SeedsStr != "ERROR")
         currentlyAllowedT2Seeds := StrSplit(currentlyAllowedT2SeedsStr, ", ")
     else
         currentlyAllowedT2Seeds := []
 
-    if (currentlyAllowedT2EggsStr != "")
+    if (currentlyAllowedT2EggsStr != "" && currentlyAllowedT2EggsStr != "ERROR")
         currentlyAllowedT2Eggs := StrSplit(currentlyAllowedT2EggsStr, ", ")
     else
         currentlyAllowedT2Eggs := []
 
     ; TODO: re-enable these when gear and egg GUI are implemented
-    if (currentlyAllowedGearStr != "")
+    if (currentlyAllowedGearStr != "" && currentlyAllowedGearStr != "ERROR")
         currentlyAllowedGear := StrSplit(currentlyAllowedGearStr, ", ")
     else
         currentlyAllowedGear := []
 
-    if (currentlyAllowedEggsStr != "")
+    if (currentlyAllowedEggsStr != "" && currentlyAllowedEggsStr != "ERROR")
         currentlyAllowedEggs := StrSplit(currentlyAllowedEggsStr, ", ")
     else
         currentlyAllowedEggs := []
 
-    if (autocraftingQueueStr != "")
+    if (autocraftingQueueStr != "" && autocraftingQueueStr != "ERROR")
         autocraftingQueue := StrSplit(autocraftingQueueStr, ", ")
     else
         autocraftingQueue := []
