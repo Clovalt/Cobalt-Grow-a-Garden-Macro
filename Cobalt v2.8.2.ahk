@@ -1,7 +1,7 @@
 #SingleInstance, force
 #Include, modules/autocrafting_LUT.ahk
 
-global version := "v2.8.1"
+global version := "v2.8.2"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -1120,34 +1120,31 @@ ShowGui:
     Gui, Add, Link, x250 y310 w150 h30, <a href="https://discord.gg/Fb4BBXxV9r">Macro Discord Server</a>
 return
 
+; thank you gemini pro for showing me theres efficient ways to do this
 AddToPingList:
     if (A_GuiEvent == "I" && ErrorLevel = 8)
     {
-        rowNumber := A_EventInfo  ; Get the number of the row that was changed
+        rowNumber := A_EventInfo
+        isChecked := LV_GetNext(rowNumber - 1, "Checked")
 
-        ; Check if the row is NOW checked
-        is_checked := LV_GetNext(rowNumber - 1, "Checked")
+        LV_GetText(rowText, rowNumber)
 
-        LV_GetText(rowText, rowNumber) ; Get the text of the item
-
-        if (is_checked)
+        if (isChecked)
         {
-            ; The box was CHECKED. Add its text to our array.
             pingList.Push(rowText)
         }
         else
         {
-            ; The box was UNCHECKED. Find its text in the array and remove it.
             for index, value in pingList
             {
                 if (value = rowText)
                 {
                     pingList.RemoveAt(index)
-                    break ; Stop searching once we've removed it
+                    break ; stop searching once we removed it
                 }
             }
         }
-        saveValues() ; Now save the accurately modified list
+        saveValues() ; now save the accurate list
     }
 return
 
