@@ -198,14 +198,16 @@ SeedCycle:
         keyEncoder("RRDRD")
         tooltipLog("Shopping for seeds...")
         goShopping(currentlyAllowedSeeds, seedItems)
-        repeatKey("Up", 40)
-        keyEncoder("RRDDDEWUEWEWRLRWE")
-        startUINav()
-        startUINav()
-        keyEncoder("RRRR")
-        repeatKey("Up", 40)
-        keyEncoder("RRDRD")
-        goShopping(currentlyAllowedT2Seeds, t2SeedItems)
+        if(currentlyAllowedT2Seeds.Length() > 0) {
+            repeatKey("Up", 40)
+            keyEncoder("RRDDDEWUEWEWRLRWE")
+            startUINav()
+            startUINav()
+            keyEncoder("RRRR")
+            repeatKey("Up", 40)
+            keyEncoder("RRDRD")
+            goShopping(currentlyAllowedT2Seeds, t2SeedItems)
+        }
         repeatKey("Up", 40)
         keyEncoder("RRDRLRWE")
         sendDiscordQueue("Seed Shop")
@@ -281,13 +283,15 @@ EggCycle:
             keyEncoder("UULLLLUUURRRRRDDDEWUUEWEW")
             ; a separate function is used because the egg shop likes to be special
             goShoppingEgg(currentlyAllowedEggs, eggItems)
-            repeatKey("Up", 40)
-            startUINav()
-            startUINav()
-            keyEncoder("UUULLLLLLLLURRRRDDRLRUWEW") ; thankfully this seems to close if you dont have it unlocked
-            startUINav()
-            startUINav()
-            goShoppingEgg(currentlyAllowedT2, eggItems)
+            if(currentlyAllowedT2Eggs.Length() > 0) {
+                repeatKey("Up", 40)
+                startUINav()
+                startUINav()
+                keyEncoder("UUULLLLLLLLURRRRDDRLRUWEW") ; thankfully this seems to close if you dont have it unlocked
+                startUINav()
+                startUINav()
+                goShoppingEgg(currentlyAllowedT2, t2EggItems)
+            }
 
             ; close
             repeatKey("Up", 40)
@@ -326,7 +330,10 @@ Autocraft:
 
     ; if the previous shops did not happen (because no gear or eggs were selected),
     ; tp to gear shop so that you can still go craft
-    if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && autocraftingQueue.Length() > 0) {
+    if( currentlyAllowedGear.Length() = 0 && 
+        currentlyAllowedEggs.Length() = 0 && 
+        currentACItem["time"] > 0 &&
+        autocraftingQueue.Length() > 0) {
         tpToGear()
     }
 
@@ -372,7 +379,7 @@ Autocraft:
         ; 1. clear any incomplete crafting, 2. claim crafting that completed, and 3. open crafting menu
         ; the double e works fine since pressing it twice just reopens the shop anyways
         SendInput, c
-        Sleep, %sleepPerf%
+        Sleep, 5000
         SendInput, e
         Sleep, 1000
         SendInput, e
