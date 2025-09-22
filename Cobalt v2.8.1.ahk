@@ -330,10 +330,7 @@ Autocraft:
 
     ; if the previous shops did not happen (because no gear or eggs were selected),
     ; tp to gear shop so that you can still go craft
-    if( currentlyAllowedGear.Length() = 0 && 
-        currentlyAllowedEggs.Length() = 0 && 
-        currentACItem["time"] > 0 &&
-        autocraftingQueue.Length() > 0) {
+    if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && currentACItem["time"] > 0 && autocraftingQueue.Length() > 0) {
         tpToGear()
     }
 
