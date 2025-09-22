@@ -188,11 +188,13 @@ SeedCycle:
     Sleep, 3000
     if(isShopOpen()) {
         ; we now have the carrot selected, start seed nav
+if(currentlyAllowedT2Seeds.Length() > 0) {
         keyEncoder("RRRR")
         repeatKey("Up", 40)
         keyEncoder("RRDRDRUWEW")
         startUINav()
         startUINav()
+}
         keyEncoder("RRRR")
         repeatKey("Up", 40)
         keyEncoder("RRDRD")
@@ -280,6 +282,7 @@ EggCycle:
             repeatKey("Up", 40)
             startUINav()
             startUINav()
+; FIXME: MAKE THIS RESET SHOP AGAIN BACK TO T1
             keyEncoder("UULLLLUUURRRRRDDDEWUUEWEW")
             ; a separate function is used because the egg shop likes to be special
             goShoppingEgg(currentlyAllowedEggs, eggItems)
