@@ -301,7 +301,7 @@ EggCycle:
                 keyEncoder("UUULLLLLLLLURRRRDDRLRUWEW") ; thankfully this seems to close if you dont have it unlocked
                 startUINav()
                 startUINav()
-                goShoppingEgg(currentlyAllowedT2, t2EggItems)
+                goShoppingEgg(currentlyAllowedT2Eggs, t2EggItems)
             }
 
             ; close
