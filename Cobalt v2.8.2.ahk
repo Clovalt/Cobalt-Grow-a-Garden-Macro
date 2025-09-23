@@ -1,5 +1,5 @@
 #SingleInstance, force
-#Include, modules/autocrafting_LUT.ahk
+#Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
 
 global version := "v2.8.2"
 
