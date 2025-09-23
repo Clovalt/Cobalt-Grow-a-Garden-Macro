@@ -484,7 +484,7 @@ genericImageSearch(imagePath) {
     x2 := Round((endXPercent / 100) * A_ScreenWidth)
     y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
-    ImageSearch, px, py, x1, y1, x2, y2, *10 images/%imagePath%
+    ImageSearch, px, py, x1, y1, x2, y2, *10 %A_ScriptDir%/images/%imagePath%
     if(ErrorLevel = 0) {
         return true
     } else if (ErrorLevel = 2) {
@@ -662,7 +662,7 @@ disconnectColorCheck() {
     x2 := Round((endXPercent / 100) * A_ScreenWidth)
     y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
-    ImageSearch, px, py, x1, y1, x2, y2, images/gray.png
+    ImageSearch, px, py, x1, y1, x2, y2, %A_ScriptDir%/images/gray.png
     if(ErrorLevel = 0) {
         longRecon := true
         return true
@@ -1107,9 +1107,9 @@ ShowGui:
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%
 
     Gui, Add, Text, x50 y110 w330 h30, Cobalt %version% by Clovalt, Cobblestone
-    Gui, Add, Picture, x50 y150 w100 h100, images/cobble.png
+    Gui, Add, Picture, x50 y150 w100 h100, %A_ScriptDir%/images/cobble.png
     Gui, Add, Text, x50 y250 w150 h100, Cobble (Cobblestone)
-    Gui, Add, Picture, x250 y150 w100 h100, images/clovalt.png
+    Gui, Add, Picture, x250 y150 w100 h100, %A_ScriptDir%/images/clovalt.png
     Gui, Add, Text, x250 y250 w150 h100, Clovalt
     Gui, Font, s8 cfb2c36, Segoe UI
     Gui, Add, Text, x50 y270 w150 h100, Macro Developer
