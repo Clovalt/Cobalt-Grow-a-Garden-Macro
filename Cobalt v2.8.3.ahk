@@ -193,7 +193,7 @@ SeedCycle:
         if(currentlyAllowedT2Seeds.Length() > 0) {
             keyEncoder("RRRR")
             repeatKey("Up", 40)
-            keyEncoder("RRDRDRUWEW")
+            keyEncoder("RRDRDWEWEWRUWEW")
             startUINav()
             startUINav()
         }
