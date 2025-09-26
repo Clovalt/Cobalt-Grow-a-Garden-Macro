@@ -1,7 +1,7 @@
 #SingleInstance, force
 #Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
 
-global version := "v2.8.2"
+global version := "v2.8.3"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -14,8 +14,8 @@ global seedItems := ["Carrot Seed", "Strawberry Seed", "Blueberry Seed"
     , "Apple Seed", "Bamboo Seed", "Coconut Seed", "Cactus Seed"
     , "Dragon Fruit Seed", "Mango Seed", "Grape Seed", "Mushroom Seed"
     , "Pepper Seed", "Cacao Seed", "Beanstalk Seed", "Ember Lily"
-    , "Sugar Apple", "Burning Bud", "Giant Pinecone Seed", "Elder Strawberry","Romanesco"]
-global t2SeedItems := ["Broccoli Seed", "Potato Seed", "Brussels Sprout Seed", "Cocomango Seed"]
+    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco"]
+global t2SeedItems := ["Broccoli Seed", "Potato Seed", "Brussels Sprout", "Cocomango Seed"]
 
 ; Edit this to change the gear
 global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
@@ -23,7 +23,7 @@ global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
     , "Medium Toy","Medium Treat", "Godly Sprinkler"
     , "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Cleansing Pet Shard"
     , "Favorite Tool", "Harvest Tool", "Friendship Pot"
-    , "Grandmaster Sprinkler", "Levelup Lollipop"]
+    , "Grandmast Sprinkler", "Levelup Lollipop"]
 
 ; Edit this to change the eggs
 global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bug Egg"]
@@ -597,9 +597,8 @@ buyAllAvailable(spamCount := 30, item := "") {
 
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
-    keyEncoder("RRRRUWWWEWEWWW")
     repeatKey("up", 40)
-    keyEncoder("LLLLLLLURRRRRDDDDDWWWEWEWWWUUU")
+    keyEncoder("LLLLURRRRRDDWWWEWEWWW")
     count := findScuffedIndex(shopObj, item)
     repeatKey("down", count - 1)
     keyEncoder("WWWEWDWE")
@@ -916,8 +915,9 @@ ShowGui:
     loadValues()
     Gui, +Caption +SysMenu +MinimizeBox +Resize
     Gui, Color, c000000
-    Gui, Font, s10 cWhite, Segoe UI
-    Gui, Add, Text, x10 y0 w490 h30 BackgroundTrans vTitleBar gDrag, Cobalt %version%
+    Gui, Font, s10 c2A6DB4 bold, Segoe UI
+    Gui, Add, Text, x10 y0 w490 h20 BackgroundTrans vTitleBar gDrag, Cobalt %version%
+    Gui, Font, S10 cFF0000  bold, Segoe UI
     Gui, Add, Text, x490 y0 w40 h25 vCloseBtn gClose Border Center hwndhCloseBtn
     GuiControl,, CloseBtn, X
     GuiControl, +BackgroundFF4444, CloseBtn
@@ -927,6 +927,7 @@ ShowGui:
     style := style & ~0xC00000 & ~0x800000 & ~0x100000 & ~0x40000
     DllCall("SetWindowLong", "Ptr", hwnd, "Int", -16, "UInt", style)
     DllCall("SetWindowPos", "Ptr", hwnd, "Ptr", 0, 0, 0, 0, 0, 0, 0x27)
+    Gui, font, s10 cWhite, Segoe UI
 
     cols := 3
     itemW := 150
@@ -939,11 +940,12 @@ ShowGui:
     groupBoxW := 490
     groupBoxH := 320
 
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Ping List|Settings|Credits
+    Gui, Font, s10 bold
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Ping List|Settings|Credits|Donators
 
-    ; seeds
+    ; seeds|
+    Gui, Font, s10 c1C96EF
     Gui, Tab, Seeds
-    Gui, Font, s10
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
 
     Gui, Add, Checkbox, x205 y105 w150 h23 c1C96EF vCheckAllSeeds gToggleAllSeeds, Select All Seeds
@@ -957,10 +959,12 @@ ShowGui:
         y := paddingY + (itemH * row)
         seed := seedItems[A_Index]
         isChecked := arrContains(currentlyAllowedSeeds, seed) ? 1 : 0
+        rarity := SeedRarity(seed)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w143 h23 gUpdateSeedState vseedCheckboxes%A_Index% Checked%isChecked%, % seed
+        ; this format repeats for a lot of the tabs, just different variables and positions
     }
-    ; this format repeats for a lot of the tabs, just different variables and positions
-
     Gui, Tab, Gear
     Gui, Font, s10
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
@@ -976,6 +980,9 @@ ShowGui:
         y := paddingY + (itemH * row)
         gear := gearItems[A_Index]
         isChecked := arrContains(currentlyAllowedGear, gear) ? 1 : 0
+        rarity := GearRarity(gear)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w151 h23 gUpdateGearState vgearCheckboxes%A_Index% Checked%isChecked%, % gear
     }
 
@@ -995,9 +1002,12 @@ ShowGui:
         y := paddingY + (itemH * row)
         egg := eggItems[A_Index]
         isChecked := arrContains(currentlyAllowedEggs, egg) ? 1 : 0
+        rarity := AutismIsMySuperpower(egg)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateEggState veggCheckboxes%A_Index% Checked%isChecked%, % egg
+        Gui, Font, cFFFFFF bold
     }
-
     Gui, Tab, Crafting
     Gui, Font, s10
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
@@ -1042,6 +1052,9 @@ ShowGui:
         y := paddingY + (itemH * row)
         seed := t2SeedItems[A_Index]
         isChecked := arrContains(currentlyAllowedT2Seeds, seed) ? 1 : 0
+        rarity := T2SeedsRarity(Seed)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2SeedCheckboxes%A_Index% Checked%isChecked%, % seed
     }
     Loop % t2EggItems.Length() {
@@ -1051,7 +1064,11 @@ ShowGui:
         y := paddingY + (itemH * row)
         egg := t2EggItems[A_Index]
         isChecked := arrContains(currentlyAllowedT2Eggs, egg) ? 1 : 0
+        rarity := t2EggRarity(Egg)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2EggCheckboxes%A_Index% Checked%isChecked%, % egg
+        Gui, Font, cWhite bold
     }
     ; ---
 
@@ -1107,27 +1124,36 @@ ShowGui:
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%
 
     Gui, Add, Text, x50 y110 w330 h30, Cobalt %version% by Clovalt, Cobblestone
-    Gui, Add, Picture, x50 y150 w100 h100, %A_ScriptDir%/images/cobble.png
+    Gui, Add, Picture, x50 y150 w100 h100, images/cobble.png
     Gui, Add, Text, x50 y250 w150 h100, Cobble (Cobblestone)
-    Gui, Add, Picture, x250 y150 w100 h100, %A_ScriptDir%/images/clovalt.png
+    Gui, Add, Picture, x250 y150 w100 h100, images/clovalt.png
     Gui, Add, Text, x250 y250 w150 h100, Clovalt
     Gui, Font, s8 cfb2c36, Segoe UI
     Gui, Add, Text, x50 y270 w150 h100, Macro Developer
     Gui, Font, s8 cBlue, Segoe UI
     Gui, Add, Text, x250 y270 w150 h100, Macro Developer and Project Lead
-    Gui, Add, Link, x50 y310 w150 h30, <a href="https://madefrom.rocks">Website</a>
+
     Gui, Add, Link, x50 y330 w150 h30, <a href="https://github.com/HoodieRocks">Github</a>
     Gui, Add, Link, x250 y310 w150 h30, <a href="https://discord.gg/Fb4BBXxV9r">Macro Discord Server</a>
+
+    Gui, Tab, Donators
+    Gui, Font, s10 c2A6DB4
+    Gui Add, Groupbox, x%groupboxX% y%groupboxY% w%groupboxW% h%groupBoxH% Background2A6DB4
+
+    Gui, Add, Text, x115 y225 w350 h33, Coming Soon.. In the meantime, Boost our Discord
+
 return
 
 ; thank you gemini pro for showing me theres efficient ways to do this
 AddToPingList:
+
     if (A_GuiEvent == "I" && ErrorLevel = 8)
     {
         rowNumber := A_EventInfo
         isChecked := LV_GetNext(rowNumber - 1, "Checked")
 
         LV_GetText(rowText, rowNumber)
+        
 
         if (isChecked)
         {
@@ -1373,7 +1399,127 @@ UpdateAutoCraftingState:
     }
     saveValues()
 return
+SeedRarity(seed) {
+    static rarityMap
+    if (!IsObject(rarityMap)) {
+        rarityMap := Object()
+        rarityMap["Carrot Seed"] := "Common"
+        rarityMap["Strawberry Seed"] := "Common"
+        rarityMap["Blueberry Seed"] := "Uncommon"
+        rarityMap["Orange Tulip Seed"] := "Uncommon"
+        rarityMap["Tomato Seed"] := "Rare"
+        rarityMap["Corn Seed"] := "Rare"
+        rarityMap["Daffodil Seed"] := "Rare"
+        rarityMap["Watermelon Seed"] := "Legendary"
+        rarityMap["Pumpkin Seed"] := "Legendary"
+        rarityMap["Apple Seed"] := "Legendary"
+        rarityMap["Bamboo Seed"] := "Legendary"
+        rarityMap["Coconut Seed"] := "Mythical"
+        rarityMap["Cactus Seed"] := "Mythical"
+        rarityMap["Dragon Fruit Seed"] := "Mythical"
+        rarityMap["Mango Seed"] := "Mythical"
+        rarityMap["Grape Seed"] := "Divine"
+        rarityMap["Mushroom Seed"] := "Divine"
+        rarityMap["Pepper Seed"] := "Divine"
+        rarityMap["Cacao Seed"] := "Divine"
+        rarityMap["Beanstalk Seed"] := "Prismatic"
+        rarityMap["Ember Lily"] := "Prismatic"
+        rarityMap["Sugar Apple"] := "Prismatic"
+        rarityMap["Burning Bud"] := "Prismatic"
+        rarityMap["Giant Pinecone"] := "Prismatic"
+        rarityMap["Elder Strawberry"] := "Prismatic"
+        rarityMap["Romanesco"] := "Prismatic"
 
+    }
+
+    return rarityMap.HasKey(seed) ? rarityMap[seed] : ""
+}
+
+GearRarity(gear) {
+    static rarityMap
+    if (!IsObject(rarityMap)) {
+        rarityMap := Object()
+        rarityMap["Watering Can"] := "Common"
+        rarityMap["Trading Ticket"] := "Uncommon"
+        rarityMap["Trowel"] := "Uncommon"
+        rarityMap["Recall Wrench"] := "Uncommon"
+        rarityMap["Basic Sprinkler"] := "Rare"
+        rarityMap["Advanced Sprinkler"] := "Legendary"
+        rarityMap["Medium Toy"] := "Legendary"
+        rarityMap["Medium Treat"] := "Legendary"
+        rarityMap["Godly Sprinkler"] := "Mythical"
+        rarityMap["Magnifying Glass"] := "Mythical"
+        rarityMap["Master Sprinkler"] := "Divine"
+        rarityMap["Cleaning Spray"] := "Divine"
+        rarityMap["Cleansing Pet Shard"] := "Divine"
+        rarityMap["Favorite Tool"] := "Divine"
+        rarityMap["Harvest Tool"] := "Divine"
+        rarityMap["Friendship Pot"] := "Divine"
+        rarityMap["Grandmast Sprinkler"] := "Prismatic"
+        rarityMap["Levelup Lollipop"] := "Prismatic"
+    }
+    return rarityMap.HasKey(gear) ? rarityMap[gear] : ""
+
+}
+
+AutismIsMySuperpower(egg) {
+    static rarityMap
+    if (!IsObject(rarityMap)) {
+        rarityMap := Object()
+        rarityMap["Common Egg"] := "Common"
+        rarityMap["Uncommon Egg"] := "Unc"
+        rarityMap["Rare Egg"] := "Rare"
+        rarityMap["Legendary Egg"] := "Legg"
+        rarityMap["Mythical Egg"] := "MyEgg!"
+        rarityMap["Bug Egg"] := "Buggy"
+
+    }
+    return rarityMap.HasKey(egg) ? rarityMap[egg] : ""
+}
+
+T2SeedsRarity(Seed) {
+    static rarityMap
+    if (!IsObject(rarityMap)) {
+         rarityMap := Object()
+        rarityMap ["Broccoli Seed"] := "Legendary"
+        rarityMap ["Potato Seed"] := "Mythical"
+        rarityMap ["Brussels Sprout"] := "Divine"
+        rarityMap ["Cocomango Seed"] := "Prismatic"
+
+    }
+    return rarityMap.HasKey(Seed) ? rarityMap[Seed] : ""
+}
+
+t2EggRarity(Egg) {
+    static rarityMap
+    if (!IsObject(rarityMap)) {
+         rarityMap := Object()
+        rarityMap ["Pet Name Reroller"] := "Legendary"
+        rarityMap ["Pet Lead"] := "Legendary"
+
+    }
+    return rarityMap.HasKey(Egg) ? rarityMap[Egg] : ""
+}
+
+itemColor(rarity) {
+    static colorMap
+    if (!IsObject(colorMap)) {
+        colorMap := Object()
+        colorMap["Common"] := "cffffff"
+        colorMap["Uncommon"] := "c57a63f"
+        colorMap["Rare"] := "c002fff"
+        colorMap["Legendary"] := "cfce326"
+        colorMap["Mythical"] := "c5D3FD3"
+        colorMap["Divine"] := "cff4400"
+        colorMap["Prismatic"] := "cB57EDC"
+        colorMap["Unc"] := "cD2B48C"
+        colorMap["Legg"] := "c8B0000"
+        colorMap["MyEgg!"] := "cFF8C00"
+        colorMap["Buggy"] := "c32CD32"
+    }
+    return colorMap.HasKey(rarity) ? colorMap[rarity] : "c000000"
+}
+return
 Close:
     sendDiscordMessage("Macro Exited!", 0, true)
 ExitApp
