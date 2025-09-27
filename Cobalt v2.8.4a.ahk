@@ -96,8 +96,8 @@ StartMacro:
     ; sendDiscordQueue("Seed Shop")
     ; Return
 
-    Gosub, EventCycle
-    Return
+    ; Gosub, EventCycle
+    ; Return
 
     sendDiscordMessage("Macro started!", 65280)
     finished := false
