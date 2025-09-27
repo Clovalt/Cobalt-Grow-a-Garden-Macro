@@ -14,7 +14,7 @@ global seedItems := ["Carrot Seed", "Strawberry Seed", "Blueberry Seed"
     , "Apple Seed", "Bamboo Seed", "Coconut Seed", "Cactus Seed"
     , "Dragon Fruit Seed", "Mango Seed", "Grape Seed", "Mushroom Seed"
     , "Pepper Seed", "Cacao Seed", "Beanstalk Seed", "Ember Lily"
-    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco"]
+    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco", "Crimson Thorn"]
 global t2SeedItems := ["Broccoli Seed", "Potato Seed", "Brussels Sprout", "Cocomango Seed"]
 
 ; Edit this to change the gear
@@ -26,7 +26,7 @@ global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
     , "Grandmast Sprinkler", "Levelup Lollipop"]
 
 ; Edit this to change the eggs
-global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bug Egg"]
+global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Jungle Egg","Bug Egg"]
 global t2EggItems := ["Pet Name Reroller", "Pet Lead"]
 
 ; Edit this to change what you want to be pinged for
@@ -117,13 +117,6 @@ Alignment:
     Sleep, 500
     repeatKey("esc")
     Sleep, 500
-
-    tooltipLog("Placing Recall Wrench in slot 2...")
-    searchItem("recall")
-    keyEncoder("DUUEDRE")
-    startInvAction()
-    tooltipLog("Aligning camera...")
-    recalibrateCameraDistance()
 
     ; do some mouse moving schenanigans to align the camera properly
     Sleep, %sleepPerf%
@@ -889,7 +882,7 @@ searchItem(item) {
     startInvAction()
     startInvAction()
     startUINav()
-    keyEncoder("LUUE")
+    keyEncoder("RUUE")
     typeString(item)
     keyEncoder("E")
 }
@@ -1429,7 +1422,8 @@ SeedRarity(seed) {
         rarityMap["Giant Pinecone"] := "Prismatic"
         rarityMap["Elder Strawberry"] := "Prismatic"
         rarityMap["Romanesco"] := "Prismatic"
-
+        rarityMap["Crimson Thorn"] := "Transcendent"
+ 
     }
 
     return rarityMap.HasKey(seed) ? rarityMap[seed] : ""
@@ -1471,6 +1465,7 @@ AutismIsMySuperpower(egg) {
         rarityMap["Rare Egg"] := "Rare"
         rarityMap["Legendary Egg"] := "Legg"
         rarityMap["Mythical Egg"] := "MyEgg!"
+        rarityMap ["Jungle Egg"] := "Jung"
         rarityMap["Bug Egg"] := "Buggy"
 
     }
@@ -1512,9 +1507,11 @@ itemColor(rarity) {
         colorMap["Mythical"] := "c5D3FD3"
         colorMap["Divine"] := "cff4400"
         colorMap["Prismatic"] := "cB57EDC"
+        colorMap["Transcendent"] := "cF6B94C"
         colorMap["Unc"] := "cD2B48C"
         colorMap["Legg"] := "c8B0000"
         colorMap["MyEgg!"] := "cFF8C00"
+        colorMap["Jung"] := "c2E5D3F"
         colorMap["Buggy"] := "c32CD32"
     }
     return colorMap.HasKey(rarity) ? colorMap[rarity] : "c000000"
