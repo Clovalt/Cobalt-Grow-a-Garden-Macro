@@ -1,7 +1,8 @@
 #SingleInstance, force
 #Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
+#Include, %A_ScriptDir%/modules/colors_LUT.ahk
 
-global version := "v2.8.3"
+global version := "v2.8.4a"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -14,7 +15,7 @@ global seedItems := ["Carrot Seed", "Strawberry Seed", "Blueberry Seed"
     , "Apple Seed", "Bamboo Seed", "Coconut Seed", "Cactus Seed"
     , "Dragon Fruit Seed", "Mango Seed", "Grape Seed", "Mushroom Seed"
     , "Pepper Seed", "Cacao Seed", "Beanstalk Seed", "Ember Lily"
-    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco"]
+    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco", "Crimson Thorn"]
 global t2SeedItems := ["Broccoli Seed", "Potato Seed", "Brussels Sprout", "Cocomango Seed"]
 
 ; Edit this to change the gear
@@ -25,8 +26,10 @@ global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
     , "Favorite Tool", "Harvest Tool", "Friendship Pot"
     , "Grandmast Sprinkler", "Levelup Lollipop"]
 
+global eventItems := ["Evo Beetroot 1", "Evo Blueberry 1", "Evo Pumpkin 1", "Evo Mushroom 1"]
+
 ; Edit this to change the eggs
-global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bug Egg"]
+global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Jungle Egg","Bug Egg"]
 global t2EggItems := ["Pet Name Reroller", "Pet Lead"]
 
 ; Edit this to change what you want to be pinged for
@@ -54,6 +57,7 @@ global webhookURL := ""
 global discordID := ""
 global longRecon := false
 global adminAbuse := false
+global walkToEvent := false
 
 global finished := true
 global cycleCount := 0
@@ -91,6 +95,10 @@ StartMacro:
     ; goShopping(currentlyAllowedSeeds, seedItems)
     ; sendDiscordQueue("Seed Shop")
     ; Return
+
+    Gosub, EventCycle
+    Return
+
     sendDiscordMessage("Macro started!", 65280)
     finished := false
 
@@ -117,13 +125,6 @@ Alignment:
     Sleep, 500
     repeatKey("esc")
     Sleep, 500
-
-    tooltipLog("Placing Recall Wrench in slot 2...")
-    searchItem("recall")
-    keyEncoder("DUUEDRE")
-    startInvAction()
-    tooltipLog("Aligning camera...")
-    recalibrateCameraDistance()
 
     ; do some mouse moving schenanigans to align the camera properly
     Sleep, %sleepPerf%
@@ -169,7 +170,7 @@ Alignment:
     sleep, 100
     keyEncoder("UUUUUUUUUUUDRRW")
     repeatKey("esc")
-    keyEncoder("WDREWW") ; TODO: determine if this is actually required
+    ; keyEncoder("WDREWW") ; TODO: determine if this is actually required
     tooltipLog("Alignment complete!")
 
 SeedCycle:
@@ -229,7 +230,7 @@ GearCycle:
         Return
     }
 
-    tpToGear()
+    tpWithItem(2)
 
     tooltipLog("Opening gear shop...")
     SendInput, e
@@ -255,7 +256,7 @@ GearCycle:
 EggCycle:
     exitIfWindowDies()
     if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() > 0) {
-        tpToGear()
+        tpWithItem(2)
     }
 
     if(currentlyAllowedEggs.Length() > 0 || currentlyAllowedT2Eggs.Length() > 0 && canDoEgg) {
@@ -284,7 +285,6 @@ EggCycle:
             repeatKey("Up", 40)
             startUINav()
             startUINav()
-            ; FIXME: MAKE THIS RESET SHOP AGAIN BACK TO T1
             keyEncoder("UULLLLUUURRRRRDDDEWUUEWEW")
             if(currentlyAllowedT2Eggs.Length() > 0) {
                 keyEncoder("WRUWEW")
@@ -335,14 +335,14 @@ Autocraft:
 
     ; if the item is still being crafted, wait for the next cycle
     if(currentACItem["time"] > 0 && currentACItem.Count() > 0) {
-        Gosub, WaitForNextCycle
+        Gosub, EventCycle
         Return
     }
 
     ; if the previous shops did not happen (because no gear or eggs were selected),
     ; tp to gear shop so that you can still go craft
     if(currentlyAllowedGear.Length() = 0 && currentlyAllowedEggs.Length() = 0 && autocraftingQueue.Length() > 0) {
-        tpToGear()
+        tpWithItem(2)
     }
 
     ; if something is in the queue, start crafting it, otherwise skip, prob unnecessary but i like safety
@@ -408,6 +408,55 @@ Autocraft:
         startUINav()
     }
 
+EventCycle:
+    exitIfWindowDies()
+
+    ; skip seeds if none are selected
+    if (currentlyAllowedEvent.Length() = 0) {
+        Gosub, WaitForNextCycle
+        Return
+    }
+
+    ; startUINav()
+    ; open shop
+    recalibrateCameraDistance()
+    if(walkToEvent) {
+        Sleep, 300
+        holdKey("d", 8000)
+        Sleep, 300
+        holdKey("up", 500)
+        Sleep, 300
+        holdKey("d", 1000)
+    } else {
+        tpWithItem(3)
+    }
+    Sleep, 1000
+    repeatKey("e")
+    Sleep, 500
+    Loop, 5 {
+        Send, {WheelUp}
+        Sleep, 10
+    }
+    Sleep, 1500
+    SafeClickRelative(0.9, 0.45)
+    Sleep, 1000
+    if(isShopOpen()) {
+        keyEncoder("RRRR")
+        repeatKey("Up", 40)
+        keyEncoder("RRD")
+        tooltipLog("Shopping for event seeds...")
+        goShopping(currentlyAllowedEvent, eventItems, 10, true)
+        repeatKey("Up", 40)
+        keyEncoder("RRRDE")
+        sendDiscordQueue("Event Shop")
+        startUINav()
+    }
+    ; event lanterns are hard to get so im not making it reconnect automatically
+    
+    ; tooltipLog("Error: Event shop did not open")
+    ; sendDiscordMessage("Event shop did not open! Reconnecting...", 16711680)
+    ; reconnect()
+
 WaitForNextCycle:
     ; reset for next run and show the timer
     SafeMoveRelative(0.5, 0.5)
@@ -418,12 +467,12 @@ WaitForNextCycle:
     sendDiscordMessage("Cycle " . cycleCount . " finished", 65280)
 Return
 
-tpToGear() {
-    tooltipLog("Going to gear shop...")
-    Send, {2}
+tpWithItem(slot) {
+    tooltipLog("Teleporting to shop...")
+    Send, {%slot%}
     SafeClickRelative(0.5, 0.5)
     Sleep, 400
-    Send, {2}
+    Send, {%slot%}
     Sleep, 400
 }
 
@@ -533,14 +582,18 @@ ShowTimeTip:
 Return
 
 ; LETS GO GAMBL- i mean shopping
-goShopping(arr, allArr, spamCount := 30) {
+goShopping(arr, allArr, spamCount := 30, isEvent := false) {
     for index, item in allArr {
 
         if(!arrContains(arr, item)) {
             repeatKey("Down")
             Continue
         }
-        buyAllAvailable(spamCount, item)
+        if(isEvent) {
+            buyAllAvailableEvent(spamCount, item)
+        } else {
+            buyAllAvailable(spamCount, item)
+        }
     }
     if(messageQueue.Length() = 0) {
         messageQueue.Push("Bought nothing...")
@@ -568,6 +621,16 @@ buyAllAvailable(spamCount := 30, item := "") {
         if(item != "Trowel") {
             repeatKey("Left")
         }
+        repeatKey("Enter", spamCount)
+        messageQueue.Push("Bought " . item . "!")
+    }
+    repeatKey("Down")
+}
+
+buyAllAvailableEvent(spamCount := 30, item := "") {
+    repeatKey("Enter")
+    repeatKey("Down")
+    if(isThereStock()) {
         repeatKey("Enter", spamCount)
         messageQueue.Push("Bought " . item . "!")
     }
@@ -755,9 +818,9 @@ repeatKey(key, count := 1) {
 
 ; holds keys obv
 holdKey(key, time) {
-    SendInput, {%key% Down}
+    Send, {%key% Down}
     Sleep, %time%
-    SendInput, {%key% Up}
+    Send, {%key% Up}
 }
 
 indexOf(array := "", value := "") {
@@ -889,7 +952,7 @@ searchItem(item) {
     startInvAction()
     startInvAction()
     startUINav()
-    keyEncoder("LUUE")
+    keyEncoder("RUUE")
     typeString(item)
     keyEncoder("E")
 }
@@ -941,9 +1004,9 @@ ShowGui:
     groupBoxH := 320
 
     Gui, Font, s10 bold
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Ping List|Settings|Credits|Donators
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Event|T2 Items|Ping List|Settings|Credits|Donators
 
-    ; seeds|
+    ; seeds
     Gui, Font, s10 c1C96EF
     Gui, Tab, Seeds
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
@@ -1070,6 +1133,28 @@ ShowGui:
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2EggCheckboxes%A_Index% Checked%isChecked%, % egg
         Gui, Font, cWhite bold
     }
+    Gui, Tab, Event
+    Gui, Font, s10
+    Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
+
+    Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllEventItems gToggleAllEvent cFFFF28, Select All Evo Seeds
+
+    paddingY := groupBoxY + 50
+    paddingX := groupBoxX + 25
+    cols := 1
+    Loop % eventItems.Length() {
+        row := Mod(A_Index - 1, Ceil(eventItems.Length() / cols))
+        col := Floor((A_Index - 1) / Ceil(eventItems.Length() / cols))
+        x := paddingX + (itemW * col)
+        y := paddingY + (itemH * row)
+        item := eventItems[A_Index]
+        isChecked := arrContains(currentlyAllowedEvent, item) ? 1 : 0
+        rarity := EventRarity(item)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
+        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateEventState veventCheckboxes%A_Index% Checked%isChecked%, % item
+        Gui, Font, cFFFFFF bold
+    }
     ; ---
 
     Gui, Tab, Ping List
@@ -1118,6 +1203,9 @@ ShowGui:
     Gui, Add, Button, h30 w215 x285 y350 gPauseMacro, Stop Macro (F7)
     Gui, Font, s10 cWhite, Segoe UI
     Gui, Add, Checkbox, x50 y275 w151 h23 vadminAbuse, Admin Abuse
+    Gui, Add, Checkbox, x50 y295 w151 h23 vwalkToEvent gUpdatePlayerValues, Walk to Event Shop
+
+    GuiControl,, walkToEvent, % walkToEvent
 
     Gui, Tab, Credits
     Gui, Font, s10
@@ -1214,21 +1302,24 @@ Return
 
 loadValues() {
     AutoTrim, On
-    IniRead, webhookURL, config.ini, PlayerConf, webhookURL, %A_Space%
-    IniRead, privateServerLink, config.ini, PlayerConf, privateServerLink, %A_Space%
-    IniRead, discordID, config.ini, PlayerConf, discordID, %A_Space%
-    IniRead, perfSetting, config.ini, PlayerConf, perfSetting, Default
-    IniRead, uiNavKeybindStr, config.ini, PlayerConf, uiNavKeybind
+    IniRead, webhookURL, %A_ScriptDir%/config.ini, PlayerConf, webhookURL, %A_Space%
+    IniRead, privateServerLink, %A_ScriptDir%/config.ini, PlayerConf, privateServerLink, %A_Space%
+    IniRead, discordID, %A_ScriptDir%/config.ini, PlayerConf, discordID, %A_Space%
+    IniRead, perfSetting, %A_ScriptDir%/config.ini, PlayerConf, perfSetting, Default
+    IniRead, uiNavKeybindStr, %A_ScriptDir%/config.ini, PlayerConf, uiNavKeybind
     AutoTrim, Off
 
-    IniRead, currentlyAllowedSeedsStr, config.ini, PersistentData, currentlyAllowedSeeds
-    IniRead, currentlyAllowedT2SeedsStr, config.ini, PersistentData, currentlyAllowedT2Seeds
-    IniRead, currentlyAllowedGearStr, config.ini, PersistentData, currentlyAllowedGear
-    IniRead, currentlyAllowedEggsStr, config.ini, PersistentData, currentlyAllowedEggs
-    IniRead, currentlyAllowedT2EggsStr, config.ini, PersistentData, currentlyAllowedT2Eggs
-    IniRead, currentlyAllowedEventStr, config.ini, PersistentData, currentlyAllowedEvent
-    IniRead, autocraftingQueueStr, config.ini, PersistentData, autocraftingQueue
-    IniRead, pingListStr, config.ini, PersistentData, pingList
+    IniRead, currentlyAllowedSeedsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
+    IniRead, currentlyAllowedT2SeedsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Seeds
+    IniRead, currentlyAllowedGearStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
+    IniRead, currentlyAllowedEggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
+    IniRead, currentlyAllowedT2EggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
+    IniRead, currentlyAllowedEventStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
+    IniRead, autocraftingQueueStr, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
+    IniRead, pingListStr, %A_ScriptDir%/config.ini, PersistentData, pingList
+    IniRead, walkToEventStr, %A_ScriptDir%/config.ini, PlayerConf, walkToEvent, 0
+
+    walkToEvent := walkToEventStr = "1" ? true : false
 
     if(pingListStr != "" and pingListStr != "ERROR") {
         pingList := StrSplit(pingListStr, ", ")
@@ -1266,6 +1357,11 @@ loadValues() {
     else
         currentlyAllowedEggs := []
 
+    if (currentlyAllowedEventStr != "" && currentlyAllowedEventStr != "ERROR")
+        currentlyAllowedEvent := StrSplit(currentlyAllowedEventStr, ", ")
+    else
+        currentlyAllowedEvent := []
+
     if (autocraftingQueueStr != "" && autocraftingQueueStr != "ERROR")
         autocraftingQueue := StrSplit(autocraftingQueueStr, ", ")
     else
@@ -1273,11 +1369,12 @@ loadValues() {
 }
 
 saveValues() {
-    IniWrite, %privateServerLink%, config.ini, PlayerConf, privateServerLink
-    IniWrite, %webhookURL%, config.ini, PlayerConf, webhookURL
-    IniWrite, %discordID%, config.ini, PlayerConf, discordID
-    IniWrite, %perfSetting%, config.ini, PlayerConf, perfSetting
-    IniWrite, %uiNavKeybind%, config.ini, PlayerConf, uiNavKeybind
+    IniWrite, %privateServerLink%, %A_ScriptDir%/config.ini, PlayerConf, privateServerLink
+    IniWrite, %webhookURL%, %A_ScriptDir%/config.ini, PlayerConf, webhookURL
+    IniWrite, %discordID%, %A_ScriptDir%/config.ini, PlayerConf, discordID
+    IniWrite, %perfSetting%, %A_ScriptDir%/config.ini, PlayerConf, perfSetting
+    IniWrite, %uiNavKeybind%, %A_ScriptDir%/config.ini, PlayerConf, uiNavKeybind
+    IniWrite, %walkToEvent%, %A_ScriptDir%/config.ini, PlayerConf, walkToEvent
 
     currentlyAllowedSeedsStr := arrayToString(currentlyAllowedSeeds)
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
@@ -1286,14 +1383,16 @@ saveValues() {
     currentlyAllowedT2EggsStr := arrayToString(currentlyAllowedT2Eggs)
     pingListStr := arrayToString(pingList)
     autocraftingQueueStr := arrayToString(autocraftingQueue)
+    currentlyAllowedEventStr := arrayToString(currentlyAllowedEvent)
 
-    IniWrite, %currentlyAllowedSeedsStr%, config.ini, PersistentData, currentlyAllowedSeeds
-    IniWrite, %currentlyAllowedGearStr%, config.ini, PersistentData, currentlyAllowedGear
-    IniWrite, %currentlyAllowedEggsStr%, config.ini, PersistentData, currentlyAllowedEggs
-    IniWrite, %currentlyAllowedT2SeedsStr%, config.ini, PersistentData, currentlyAllowedT2Seeds
-    IniWrite, %currentlyAllowedT2EggsStr%, config.ini, PersistentData, currentlyAllowedT2Eggs
-    IniWrite, %pingListStr%, config.ini, PersistentData, pingList
-    IniWrite, %autocraftingQueueStr%, config.ini, PersistentData, autocraftingQueue
+    IniWrite, %currentlyAllowedSeedsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
+    IniWrite, %currentlyAllowedGearStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
+    IniWrite, %currentlyAllowedEggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
+    IniWrite, %currentlyAllowedT2SeedsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Seeds
+    IniWrite, %currentlyAllowedT2EggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
+    IniWrite, %currentlyAllowedEventStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
+    IniWrite, %autocraftingQueueStr%, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
+    IniWrite, %pingListStr%, %A_ScriptDir%/config.ini, PersistentData, pingList
 }
 
 ToggleAllSeeds:
@@ -1343,6 +1442,26 @@ ToggleAllEggs:
         GuiControl,, %control%, %checkState%
     }
     Gosub, UpdateEggState
+return
+
+ToggleAllEvent:
+    GuiControlGet, checkState,, CheckAllEventItems
+    Loop % eventItems.Length() {
+        control := "eventCheckboxes" A_Index
+        GuiControl,, %control%, %checkState%
+    }
+    Gosub, UpdateEventState
+return
+
+UpdateEventState:
+    Gui Submit, NoHide
+    currentlyAllowedEvent := []
+    Loop, % eventItems.Length() {
+        if(eventCheckboxes%A_Index% = 1)
+            insertByReferenceOrder(currentlyAllowedEvent, eventItems[A_Index], eventItems)
+
+    }
+    saveValues()
 return
 
 UpdateEggState:
@@ -1398,127 +1517,6 @@ UpdateAutoCraftingState:
 
     }
     saveValues()
-return
-SeedRarity(seed) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
-        rarityMap["Carrot Seed"] := "Common"
-        rarityMap["Strawberry Seed"] := "Common"
-        rarityMap["Blueberry Seed"] := "Uncommon"
-        rarityMap["Orange Tulip Seed"] := "Uncommon"
-        rarityMap["Tomato Seed"] := "Rare"
-        rarityMap["Corn Seed"] := "Rare"
-        rarityMap["Daffodil Seed"] := "Rare"
-        rarityMap["Watermelon Seed"] := "Legendary"
-        rarityMap["Pumpkin Seed"] := "Legendary"
-        rarityMap["Apple Seed"] := "Legendary"
-        rarityMap["Bamboo Seed"] := "Legendary"
-        rarityMap["Coconut Seed"] := "Mythical"
-        rarityMap["Cactus Seed"] := "Mythical"
-        rarityMap["Dragon Fruit Seed"] := "Mythical"
-        rarityMap["Mango Seed"] := "Mythical"
-        rarityMap["Grape Seed"] := "Divine"
-        rarityMap["Mushroom Seed"] := "Divine"
-        rarityMap["Pepper Seed"] := "Divine"
-        rarityMap["Cacao Seed"] := "Divine"
-        rarityMap["Beanstalk Seed"] := "Prismatic"
-        rarityMap["Ember Lily"] := "Prismatic"
-        rarityMap["Sugar Apple"] := "Prismatic"
-        rarityMap["Burning Bud"] := "Prismatic"
-        rarityMap["Giant Pinecone"] := "Prismatic"
-        rarityMap["Elder Strawberry"] := "Prismatic"
-        rarityMap["Romanesco"] := "Prismatic"
-
-    }
-
-    return rarityMap.HasKey(seed) ? rarityMap[seed] : ""
-}
-
-GearRarity(gear) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
-        rarityMap["Watering Can"] := "Common"
-        rarityMap["Trading Ticket"] := "Uncommon"
-        rarityMap["Trowel"] := "Uncommon"
-        rarityMap["Recall Wrench"] := "Uncommon"
-        rarityMap["Basic Sprinkler"] := "Rare"
-        rarityMap["Advanced Sprinkler"] := "Legendary"
-        rarityMap["Medium Toy"] := "Legendary"
-        rarityMap["Medium Treat"] := "Legendary"
-        rarityMap["Godly Sprinkler"] := "Mythical"
-        rarityMap["Magnifying Glass"] := "Mythical"
-        rarityMap["Master Sprinkler"] := "Divine"
-        rarityMap["Cleaning Spray"] := "Divine"
-        rarityMap["Cleansing Pet Shard"] := "Divine"
-        rarityMap["Favorite Tool"] := "Divine"
-        rarityMap["Harvest Tool"] := "Divine"
-        rarityMap["Friendship Pot"] := "Divine"
-        rarityMap["Grandmast Sprinkler"] := "Prismatic"
-        rarityMap["Levelup Lollipop"] := "Prismatic"
-    }
-    return rarityMap.HasKey(gear) ? rarityMap[gear] : ""
-
-}
-
-AutismIsMySuperpower(egg) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
-        rarityMap["Common Egg"] := "Common"
-        rarityMap["Uncommon Egg"] := "Unc"
-        rarityMap["Rare Egg"] := "Rare"
-        rarityMap["Legendary Egg"] := "Legg"
-        rarityMap["Mythical Egg"] := "MyEgg!"
-        rarityMap["Bug Egg"] := "Buggy"
-
-    }
-    return rarityMap.HasKey(egg) ? rarityMap[egg] : ""
-}
-
-T2SeedsRarity(Seed) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-         rarityMap := Object()
-        rarityMap ["Broccoli Seed"] := "Legendary"
-        rarityMap ["Potato Seed"] := "Mythical"
-        rarityMap ["Brussels Sprout"] := "Divine"
-        rarityMap ["Cocomango Seed"] := "Prismatic"
-
-    }
-    return rarityMap.HasKey(Seed) ? rarityMap[Seed] : ""
-}
-
-t2EggRarity(Egg) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-         rarityMap := Object()
-        rarityMap ["Pet Name Reroller"] := "Legendary"
-        rarityMap ["Pet Lead"] := "Legendary"
-
-    }
-    return rarityMap.HasKey(Egg) ? rarityMap[Egg] : ""
-}
-
-itemColor(rarity) {
-    static colorMap
-    if (!IsObject(colorMap)) {
-        colorMap := Object()
-        colorMap["Common"] := "cffffff"
-        colorMap["Uncommon"] := "c57a63f"
-        colorMap["Rare"] := "c002fff"
-        colorMap["Legendary"] := "cfce326"
-        colorMap["Mythical"] := "c5D3FD3"
-        colorMap["Divine"] := "cff4400"
-        colorMap["Prismatic"] := "cB57EDC"
-        colorMap["Unc"] := "cD2B48C"
-        colorMap["Legg"] := "c8B0000"
-        colorMap["MyEgg!"] := "cFF8C00"
-        colorMap["Buggy"] := "c32CD32"
-    }
-    return colorMap.HasKey(rarity) ? colorMap[rarity] : "c000000"
-}
 return
 Close:
     sendDiscordMessage("Macro Exited!", 0, true)
