@@ -170,7 +170,7 @@ Alignment:
     sleep, 100
     keyEncoder("UUUUUUUUUUUDRRW")
     repeatKey("esc")
-    ; keyEncoder("WDREWW") ; TODO: determine if this is actually required
+    keyEncoder("WDREWW") ; TODO: determine if this is actually required
     tooltipLog("Alignment complete!")
 
 SeedCycle:
@@ -285,7 +285,7 @@ EggCycle:
             repeatKey("Up", 40)
             startUINav()
             startUINav()
-            keyEncoder("UULLLLUUURRRRRDDDEWUUEWEW")
+            keyEncoder("UULLLLUUURRRRRDDDWEWWWWUUUUUURRDDWEWEW")
             if(currentlyAllowedT2Eggs.Length() > 0) {
                 keyEncoder("WRUWEW")
                 startUINav()
@@ -298,10 +298,13 @@ EggCycle:
                 repeatKey("Up", 40)
                 startUINav()
                 startUINav()
-                keyEncoder("UUULLLLLLLLURRRRDDRLRUWEW") ; thankfully this seems to close if you dont have it unlocked
+                keyEncoder("RRRRUUUWWEWWEWWRWWEWW") ; thankfully this seems to close if you dont have it unlocked
                 startUINav()
                 startUINav()
-                goShoppingEgg(currentlyAllowedT2Eggs, t2EggItems)
+                keyEncoder("RRRR")
+                repeatKey("Up", 40)
+                keyEncoder("RRDDWWEWWEWW")
+                goShoppingEgg(currentlyAllowedT2Eggs, t2EggItems, true)
             }
 
             ; close
@@ -396,13 +399,15 @@ Autocraft:
         repeatKey("esc", 2) ; close robux ui if it opened
         Sleep, %sleepPerf%
         ; if crafting is opened, select the item, input the items, and start crafting
-        if(isCraftingOpen()) {
+        if(isShopOpen()) {
             index := selectCraftableItem(category, item)
             Sleep, 1000
             SendInput, f ; fill items
             Sleep, 1000
             SendInput, e ; start crafting
             sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentACItem["time"] . "`` minutes.")
+        } else {
+            tooltipLog("CANNOT FIND IT")
         }
         Sleep, 500
         startUINav()
@@ -417,7 +422,6 @@ EventCycle:
         Return
     }
 
-    ; startUINav()
     ; open shop
     recalibrateCameraDistance()
     if(walkToEvent) {
@@ -439,6 +443,8 @@ EventCycle:
     }
     Sleep, 1500
     SafeClickRelative(0.9, 0.45)
+    Sleep, 1000
+    startUINav()
     Sleep, 1000
     if(isShopOpen()) {
         keyEncoder("RRRR")
@@ -590,7 +596,7 @@ goShopping(arr, allArr, spamCount := 30, isEvent := false) {
             Continue
         }
         if(isEvent) {
-            buyAllAvailableEvent(spamCount, item)
+            buyAllAvailableNoLeft(spamCount, item)
         } else {
             buyAllAvailable(spamCount, item)
         }
@@ -601,13 +607,17 @@ goShopping(arr, allArr, spamCount := 30, isEvent := false) {
 }
 
 ; go shopping for eggs
-goShoppingEgg(arr, allArr) {
+goShoppingEgg(arr, allArr, isT2 := false) {
     for index, item in allArr {
         if(!arrContains(arr, item)) {
             repeatKey("Down")
             Continue
         }
-        buyAllAvailable(5, item)
+        if(isT2) {
+            buyAllAvailableNoLeft(5, item)
+        } else {
+            buyAllAvailable(5, item)
+        }
     }
     if(messageQueue.Length() = 0) {
         messageQueue.Push("Bought nothing...")
@@ -627,7 +637,7 @@ buyAllAvailable(spamCount := 30, item := "") {
     repeatKey("Down")
 }
 
-buyAllAvailableEvent(spamCount := 30, item := "") {
+buyAllAvailableNoLeft(spamCount := 30, item := "") {
     repeatKey("Enter")
     repeatKey("Down")
     if(isThereStock()) {
@@ -660,6 +670,7 @@ buyAllAvailableEvent(spamCount := 30, item := "") {
 
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
+    keyEncoder("RRRR")
     repeatKey("up", 40)
     keyEncoder("LLLLURRRRRDDWWWEWEWWW")
     count := findScuffedIndex(shopObj, item)
