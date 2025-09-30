@@ -44,6 +44,7 @@ allList.Push(t2SeedItems*)
 allList.Push(gearItems*)
 allList.Push(eggItems*)
 allList.Push(t2EggItems*)
+allList.Push(eventItems*)
 
 global currentlyAllowedSeeds := []
 global currentlyAllowedT2Seeds := []
@@ -285,12 +286,12 @@ EggCycle:
             repeatKey("Up", 40)
             startUINav()
             startUINav()
-            keyEncoder("UULLLLUUURRRRRDDDWEWWWWUUUUUURRDDWEWEW")
+            keyEncoder("UULLLLUUURRRRRDDDWEWWWWUUUUUURRDDWEWEWWW")
             if(currentlyAllowedT2Eggs.Length() > 0) {
                 keyEncoder("WRUWEW")
                 startUINav()
                 startUINav()
-                keyEncoder("UULLLLUUURRRRRDD")
+                keyEncoder("UULLLLUUURRRRRDDWW")
             }
             ; a separate function is used because the egg shop likes to be special
             goShoppingEgg(currentlyAllowedEggs, eggItems)
@@ -311,7 +312,7 @@ EggCycle:
             repeatKey("Up", 40)
             startUINav()
             startUINav()
-            keyEncoder("UUULLLLLLLLURRRRDRLRE")
+            keyEncoder("UUULLLLLLLLUUUUUUURRRRDRLRE")
             sendDiscordQueue("Egg Shop")
             Sleep, 500
             startUINav()
@@ -406,8 +407,6 @@ Autocraft:
             Sleep, 1000
             SendInput, e ; start crafting
             sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentACItem["time"] . "`` minutes.")
-        } else {
-            tooltipLog("CANNOT FIND IT")
         }
         Sleep, 500
         startUINav()
@@ -453,7 +452,7 @@ EventCycle:
         tooltipLog("Shopping for event seeds...")
         goShopping(currentlyAllowedEvent, eventItems, 10, true)
         repeatKey("Up", 40)
-        keyEncoder("RRRDE")
+        keyEncoder("RRRRLUUWEW")
         sendDiscordQueue("Event Shop")
         startUINav()
     }
@@ -518,11 +517,6 @@ exitIfWindowDies() {
     if(!WinExist("ahk_exe RobloxPlayerBeta.exe")) {
         Gosub, Close
     }
-}
-
-; find if crafting menu is open by looking for the color of the text
-isCraftingOpen() {
-    return genericImageSearch("crafting_color.png")
 }
 
 genericImageSearch(imagePath) {
@@ -672,7 +666,7 @@ buyAllAvailableNoLeft(spamCount := 30, item := "") {
 selectCraftableItem(shopObj, item) {
     keyEncoder("RRRR")
     repeatKey("up", 40)
-    keyEncoder("LLLLURRRRRDDWWWEWEWWW")
+    keyEncoder("LLLLURRRRRRLWWEWWEWW")
     count := findScuffedIndex(shopObj, item)
     repeatKey("down", count - 1)
     keyEncoder("WWWEWDWE")
