@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
 #Include, %A_ScriptDir%/modules/colors_LUT.ahk
 
-global version := "v2.8.4a-2"
+global version := "v2.8.4b"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
