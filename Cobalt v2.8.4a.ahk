@@ -305,7 +305,7 @@ EggCycle:
                 keyEncoder("RRRR")
                 repeatKey("Up", 40)
                 keyEncoder("RRDDWWEWWEWW")
-                goShoppingEgg(currentlyAllowedT2Eggs, t2EggItems, true)
+                goShoppingEgg(currentlyAllowedT2Eggs, t2EggItems, 15 true)
             }
 
             ; close
@@ -601,16 +601,16 @@ goShopping(arr, allArr, spamCount := 30, isEvent := false) {
 }
 
 ; go shopping for eggs
-goShoppingEgg(arr, allArr, isT2 := false) {
+goShoppingEgg(arr, allArr, spamCount := 5, isT2 := false) {
     for index, item in allArr {
         if(!arrContains(arr, item)) {
             repeatKey("Down")
             Continue
         }
         if(isT2) {
-            buyAllAvailableNoLeft(5, item)
+            buyAllAvailableNoLeft(spamCount, item)
         } else {
-            buyAllAvailable(5, item)
+            buyAllAvailable(spamCount, item)
         }
     }
     if(messageQueue.Length() = 0) {
