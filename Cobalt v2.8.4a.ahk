@@ -305,7 +305,7 @@ EggCycle:
                 keyEncoder("RRRR")
                 repeatKey("Up", 40)
                 keyEncoder("RRDDWWEWWEWW")
-                goShoppingEgg(currentlyAllowedT2Eggs, t2EggItems, 15 true)
+                goShoppingEgg(currentlyAllowedT2Eggs, t2EggItems, 15, true)
             }
 
             ; close
