@@ -92,13 +92,6 @@ StartMacro:
     }
     ; focus the window so we can actually work the macro
     WinActivate, ahk_exe RobloxPlayerBeta.exe
-    ; smart buying coming soon :)
-    ; goShopping(currentlyAllowedSeeds, seedItems)
-    ; sendDiscordQueue("Seed Shop")
-    ; Return
-
-    ; Gosub, EventCycle
-    ; Return
 
     sendDiscordMessage("Macro started!", 65280)
     finished := false
@@ -441,7 +434,7 @@ EventCycle:
         Sleep, 10
     }
     Sleep, 1500
-    SafeClickRelative(0.9, 0.45)
+    SafeClickRelative(0.9, 0.35)
     Sleep, 1000
     startUINav()
     Sleep, 1000
@@ -456,11 +449,6 @@ EventCycle:
         sendDiscordQueue("Event Shop")
         startUINav()
     }
-    ; event lanterns are hard to get so im not making it reconnect automatically
-    
-    ; tooltipLog("Error: Event shop did not open")
-    ; sendDiscordMessage("Event shop did not open! Reconnecting...", 16711680)
-    ; reconnect()
 
 WaitForNextCycle:
     ; reset for next run and show the timer
@@ -589,11 +577,7 @@ goShopping(arr, allArr, spamCount := 30, isEvent := false) {
             repeatKey("Down")
             Continue
         }
-        if(isEvent) {
-            buyAllAvailableNoLeft(spamCount, item)
-        } else {
-            buyAllAvailable(spamCount, item)
-        }
+        buyAllAvailable(spamCount, item, !isEvent)
     }
     if(messageQueue.Length() = 0) {
         messageQueue.Push("Bought nothing...")
@@ -607,22 +591,18 @@ goShoppingEgg(arr, allArr, spamCount := 5, isT2 := false) {
             repeatKey("Down")
             Continue
         }
-        if(isT2) {
-            buyAllAvailableNoLeft(spamCount, item)
-        } else {
-            buyAllAvailable(spamCount, item)
-        }
+        buyAllAvailable(spamCount, item, !isT2)
     }
     if(messageQueue.Length() = 0) {
         messageQueue.Push("Bought nothing...")
     }
 }
 
-buyAllAvailable(spamCount := 30, item := "") {
+buyAllAvailable(spamCount := 30, item := "", useLeft := true) {
     repeatKey("Enter")
     repeatKey("Down")
     if(isThereStock()) {
-        if(item != "Trowel") {
+        if(item != "Trowel" && useLeft) {
             repeatKey("Left")
         }
         repeatKey("Enter", spamCount)
@@ -631,36 +611,27 @@ buyAllAvailable(spamCount := 30, item := "") {
     repeatKey("Down")
 }
 
-buyAllAvailableNoLeft(spamCount := 30, item := "") {
+; almost ready
+buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true) {
     repeatKey("Enter")
     repeatKey("Down")
     if(isThereStock()) {
-        repeatKey("Enter", spamCount)
-        messageQueue.Push("Bought " . item . "!")
+        if(item != "Trowel" && useLeft) {
+            repeatKey("Left")
+        }
+        count := 0
+        Loop, % spamCount {
+            if(isThereNoStock()) {
+                Break
+            }
+            SendInput, {Enter}
+            Sleep, 300
+            count += 1
+        }
+        messageQueue.Push("Bought " . count . " " . item . "s!")
     }
     repeatKey("Down")
 }
-
-; buyAllAvailableSmart(spamCount := 30, item := "") {
-;     repeatKey("Enter")
-;     repeatKey("Down")
-;     if(isThereStock()) {
-;         if(item != "Trowel") {
-;             repeatKey("Left")
-;         }
-;         count := 0
-;         Loop, % spamCount {
-;             if(isThereNoStock()) {
-;                 Break
-;             }
-;             SendInput, {Enter}
-;             Sleep, %sleepPerf%
-;             count += 1
-;         }
-;         messageQueue.Push("Bought " . count . " " . item . "s!")
-;     }
-;     repeatKey("Down")
-; }
 
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
@@ -856,25 +827,6 @@ arrContains(array := "", value := "") {
     return false
 }
 
-typeString(string) {
-
-    if (string = "") {
-        Return
-    }
-
-    Loop, Parse, string
-    {
-        value := A_LoopField
-
-        if(A_LoopField = " ") {
-            value := "space"
-        }
-
-        Send, {%value%}
-        Sleep, %sleepPerf%
-    }
-}
-
 insertByReferenceOrder(targetList, value, referenceList) {
     refIndex := indexOf(referenceList, value)
     if (refIndex = -1) ; reference doesn't exist, if you get here, we have issues
@@ -948,18 +900,6 @@ sendDiscordMessage(message, color := 0x0000FF, ping := false) {
         return
     }
 
-}
-
-searchItem(item) {
-    startInvAction()
-    startUINav()
-    keyEncoder("E")
-    startInvAction()
-    startInvAction()
-    startUINav()
-    keyEncoder("RUUE")
-    typeString(item)
-    keyEncoder("E")
 }
 
 arrayToString(arr, delimiter := ", ") {
@@ -1246,7 +1186,6 @@ AddToPingList:
         isChecked := LV_GetNext(rowNumber - 1, "Checked")
 
         LV_GetText(rowText, rowNumber)
-        
 
         if (isChecked)
         {
@@ -1400,112 +1339,74 @@ saveValues() {
     IniWrite, %pingListStr%, %A_ScriptDir%/config.ini, PersistentData, pingList
 }
 
-ToggleAllSeeds:
-    GuiControlGet, checkState,, CheckAllSeeds
-    Loop % seedItems.Length() {
-        control := "seedCheckboxes" A_Index
+toggleAllState(checkboxName, checkboxArr, refItemArr) {
+    GuiControlGet, checkState,, %checkboxName%
+    Loop % refItemArr.Length() {
+        control := checkboxArr A_Index
         GuiControl,, %control%, %checkState%
     }
-    Gosub, UpdateSeedState
-Return
+}
 
-UpdateSeedState:
+updateCheckState(ByRef arr, referenceArr, checkboxArr) {
     Gui Submit, NoHide
 
-    currentlyAllowedSeeds := []
-    Loop, % seedItems.Length() {
-        if(seedCheckboxes%A_Index% = 1) {
-            insertByReferenceOrder(currentlyAllowedSeeds, seedItems[A_Index], seedItems)
+    arr := []
+    Loop, % referenceArr.Length() {
+        controlName := checkboxArr A_Index
+        GuiControlGet, checkState,, %controlName%
+        if(checkState = 1) {
+            insertByReferenceOrder(arr, referenceArr[A_Index], referenceArr)
         }
     }
     saveValues()
+}
+
+ToggleAllSeeds:
+    toggleAllState("CheckAllSeeds", "seedCheckboxes", seedItems)
+    updateCheckState(currentlyAllowedSeeds, seedItems, "seedCheckboxes")
+Return
+
+UpdateSeedState:
+    updateCheckState(currentlyAllowedSeeds, seedItems, "seedCheckboxes")
 return
 
 ToggleAllGear:
-    GuiControlGet, checkState,, CheckAllGear
-    Loop % gearItems.Length() {
-        control := "gearCheckboxes" A_Index
-        GuiControl,, %control%, %checkState%
-    }
-    Gosub, UpdateGearState
+    toggleAllState("CheckAllGear", "gearCheckboxes", gearItems)
+    updateCheckState(currentlyAllowedGear, gearItems, "gearCheckboxes")
 return
 
 UpdateGearState:
-    Gui Submit, NoHide
-    currentlyAllowedGear := []
-    Loop, % gearItems.Length() {
-        if(gearCheckboxes%A_Index% = 1)
-            insertByReferenceOrder(currentlyAllowedGear, gearItems[A_Index], gearItems)
-    }
-    saveValues()
+    updateCheckState(currentlyAllowedGear, gearItems, "gearCheckboxes")
 return
 
 ToggleAllEggs:
-    GuiControlGet, checkState,, CheckAllEggs
-    Loop % eggItems.Length() {
-        control := "eggCheckboxes" A_Index
-        GuiControl,, %control%, %checkState%
-    }
-    Gosub, UpdateEggState
+    toggleAllState("CheckAllEggs", "eggCheckboxes", eggItems)
+    updateCheckState(currentlyAllowedEggs, eggItems, "eggCheckboxes")
 return
 
 ToggleAllEvent:
-    GuiControlGet, checkState,, CheckAllEventItems
-    Loop % eventItems.Length() {
-        control := "eventCheckboxes" A_Index
-        GuiControl,, %control%, %checkState%
-    }
-    Gosub, UpdateEventState
+    toggleAllState("CheckAllEventItems", "eventCheckboxes", eventItems)
+    updateCheckState(currentlyAllowedEvent, eventItems, "eventCheckboxes")
 return
 
 UpdateEventState:
-    Gui Submit, NoHide
-    currentlyAllowedEvent := []
-    Loop, % eventItems.Length() {
-        if(eventCheckboxes%A_Index% = 1)
-            insertByReferenceOrder(currentlyAllowedEvent, eventItems[A_Index], eventItems)
-
-    }
-    saveValues()
+    updateCheckState(currentlyAllowedEvent, eventItems, "eventCheckboxes")
 return
 
 UpdateEggState:
-    Gui Submit, NoHide
-    currentlyAllowedEggs := []
-    Loop, % eggItems.Length() {
-        if(eggCheckboxes%A_Index% = 1)
-            insertByReferenceOrder(currentlyAllowedEggs, eggItems[A_Index], eggItems)
-
-    }
-    saveValues()
+    updateCheckState(currentlyAllowedEggs, eggItems, "eggCheckboxes")
 return
 
 ToggleAllT2Items:
-    GuiControlGet, checkState,, CheckAllT2Items
-    Loop % t2EggItems.Length() {
-        control := "t2EggCheckboxes" A_Index
-        GuiControl,, %control%, %checkState%
-    }
-    Loop % t2SeedItems.Length() {
-        control := "t2SeedCheckboxes" A_Index
-        GuiControl,, %control%, %checkState%
-    }
-    Gosub, UpdateT2ItemsState
+    toggleAllState("CheckAllT2Items", "t2EggCheckboxes", t2EggItems)
+    toggleAllState("CheckAllT2Items", "t2SeedCheckboxes", t2SeedItems)
+    updateCheckState(currentlyAllowedT2Eggs, t2EggItems, "t2EggCheckboxes")
+    updateCheckState(currentlyAllowedT2Seeds, t2SeedItems, "t2SeedCheckboxes")
 return
 
 UpdateT2ItemsState:
-    Gui Submit, NoHide
-    currentlyAllowedT2Eggs := []
-    currentlyAllowedT2Seeds := []
-    Loop, % t2EggItems.Length() {
-        if(t2EggCheckboxes%A_Index% = 1)
-            insertByReferenceOrder(currentlyAllowedT2Eggs, t2EggItems[A_Index], t2EggItems)
-    }
-    Loop, % t2SeedItems.Length() {
-        if(t2SeedCheckboxes%A_Index% = 1)
-            insertByReferenceOrder(currentlyAllowedT2Seeds, t2SeedItems[A_Index], t2SeedItems)
-    }
-    saveValues()
+    updateCheckState(currentlyAllowedT2Eggs, t2EggItems, "t2EggCheckboxes")
+    updateCheckState(currentlyAllowedT2Seeds, t2SeedItems, "t2SeedCheckboxes")
 return
 
 UpdateAutoCraftingState:
