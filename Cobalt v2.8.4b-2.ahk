@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
 #Include, %A_ScriptDir%/modules/colors_LUT.ahk
 
-global version := "v2.8.4b"
+global version := "v2.8.4b-2"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -417,12 +417,17 @@ EventCycle:
     ; open shop
     recalibrateCameraDistance()
     if(walkToEvent) {
+        startUINav()
+        keyEncoder("WUUULLLURRRWE")
+        startUINav()
         Sleep, 300
         holdKey("d", 8000)
         Sleep, 300
         holdKey("up", 500)
         Sleep, 300
         holdKey("d", 1000)
+        Sleep, 300
+        holdKey("down", 500)
     } else {
         tpWithItem(3)
     }
@@ -1148,7 +1153,7 @@ ShowGui:
     Gui, Add, Button, h30 w215 x285 y350 gPauseMacro, Stop Macro (F7)
     Gui, Font, s10 cWhite, Segoe UI
     Gui, Add, Checkbox, x50 y275 w151 h23 vadminAbuse, Admin Abuse
-    Gui, Add, Checkbox, x50 y295 w151 h23 vwalkToEvent gUpdatePlayerValues, Walk to Event Shop
+    Gui, Add, Checkbox, x50 y295 w151 h23 vwalkToEvent gUpdatePlayerValues, Walk to Event Shop (reliability issues)
 
     GuiControl,, walkToEvent, % walkToEvent
 
