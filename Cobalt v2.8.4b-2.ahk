@@ -253,7 +253,7 @@ EggCycle:
         tpWithItem(2)
     }
 
-    if(currentlyAllowedEggs.Length() > 0 || currentlyAllowedT2Eggs.Length() > 0 && canDoEgg) {
+    if((currentlyAllowedEggs.Length() > 0 || currentlyAllowedT2Eggs.Length() > 0) && canDoEgg) {
         canDoEgg := false
         tooltipLog("Going to egg shop...")
         recalibrateCameraDistance()
@@ -454,6 +454,7 @@ EventCycle:
         sendDiscordQueue("Event Shop")
         startUINav()
     }
+    recalibrateCameraDistance()
 
 WaitForNextCycle:
     ; reset for next run and show the timer
@@ -555,12 +556,12 @@ ShowTimeTip:
     RemainingSecs30 := Mod(SecondsUntil30, 60)
     FormattedTime30 := Format("{:02}:{:02}", RemainingMins30, RemainingSecs30)
 
-    if(!adminAbuse) {
-        ToolTip, Next cycle in %FormattedTime5%`nNext Egg Cycle in %FormattedTime30%
-    }
-
     if (SecondsUntil30 < 3 || adminAbuse) {
         canDoEgg := true
+    }
+
+    if(!adminAbuse) {
+        ToolTip, Next cycle in %FormattedTime5%`nNext Egg Cycle in %FormattedTime30%
     }
 
     if (SecondsUntil5 < 3 || adminAbuse) {
