@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
 #Include, %A_ScriptDir%/modules/colors_LUT.ahk
 
-global version := "v2.8.4b-2"
+global version := "v2.8.4b-3"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -431,10 +431,16 @@ EventCycle:
     } else {
         tpWithItem(3)
     }
+
+    Loop, 2 {
+        Send, {WheelDown}
+        Sleep, 10
+    }
+
     Sleep, 1000
     repeatKey("e")
-    Sleep, 500
-    Loop, 5 {
+    Sleep, 2000
+    Loop, 7 {
         Send, {WheelUp}
         Sleep, 10
     }
