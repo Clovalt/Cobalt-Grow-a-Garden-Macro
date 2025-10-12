@@ -2,26 +2,26 @@ SeedRarity(seed) {
     static rarityMap
     if (!IsObject(rarityMap)) {
         rarityMap := Object()
-        rarityMap["Carrot Seed"] := "Common"
-        rarityMap["Strawberry Seed"] := "Common"
-        rarityMap["Blueberry Seed"] := "Uncommon"
-        rarityMap["Orange Tulip Seed"] := "Uncommon"
-        rarityMap["Tomato Seed"] := "Rare"
-        rarityMap["Corn Seed"] := "Rare"
-        rarityMap["Daffodil Seed"] := "Rare"
-        rarityMap["Watermelon Seed"] := "Legendary"
-        rarityMap["Pumpkin Seed"] := "Legendary"
-        rarityMap["Apple Seed"] := "Legendary"
-        rarityMap["Bamboo Seed"] := "Legendary"
-        rarityMap["Coconut Seed"] := "Mythical"
-        rarityMap["Cactus Seed"] := "Mythical"
-        rarityMap["Dragon Fruit Seed"] := "Mythical"
-        rarityMap["Mango Seed"] := "Mythical"
-        rarityMap["Grape Seed"] := "Divine"
-        rarityMap["Mushroom Seed"] := "Divine"
-        rarityMap["Pepper Seed"] := "Divine"
-        rarityMap["Cacao Seed"] := "Divine"
-        rarityMap["Beanstalk Seed"] := "Prismatic"
+        rarityMap["Carrot"] := "Common"
+        rarityMap["Strawberry"] := "Common"
+        rarityMap["Blueberry"] := "Uncommon"
+        rarityMap["Orange Tulip"] := "Uncommon"
+        rarityMap["Tomato"] := "Rare"
+        rarityMap["Corn"] := "Rare"
+        rarityMap["Daffodil"] := "Rare"
+        rarityMap["Watermelon"] := "Legendary"
+        rarityMap["Pumpkin"] := "Legendary"
+        rarityMap["Apple"] := "Legendary"
+        rarityMap["Bamboo"] := "Legendary"
+        rarityMap["Coconut"] := "Mythical"
+        rarityMap["Cactus"] := "Mythical"
+        rarityMap["Dragon Fruit"] := "Mythical"
+        rarityMap["Mango"] := "Mythical"
+        rarityMap["Grape"] := "Divine"
+        rarityMap["Mushroom"] := "Divine"
+        rarityMap["Pepper"] := "Divine"
+        rarityMap["Cacao"] := "Divine"
+        rarityMap["Beanstalk"] := "Prismatic"
         rarityMap["Ember Lily"] := "Prismatic"
         rarityMap["Sugar Apple"] := "Prismatic"
         rarityMap["Burning Bud"] := "Prismatic"
@@ -76,19 +76,6 @@ AutismIsMySuperpower(egg) {
 
     }
     return rarityMap.HasKey(egg) ? rarityMap[egg] : ""
-}
-
-T2SeedsRarity(Seed) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
-        rarityMap ["Broccoli Seed"] := "Legendary"
-        rarityMap ["Potato Seed"] := "Mythical"
-        rarityMap ["Brussels Sprout"] := "Divine"
-        rarityMap ["Cocomango Seed"] := "Prismatic"
-
-    }
-    return rarityMap.HasKey(Seed) ? rarityMap[Seed] : ""
 }
 
 t2EggRarity(Egg) {

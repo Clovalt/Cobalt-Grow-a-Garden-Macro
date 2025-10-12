@@ -2,21 +2,21 @@
 #Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
 #Include, %A_ScriptDir%/modules/colors_LUT.ahk
 
-global version := "v2.8.4"
+global version := "v2.8.5"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
 global invNavKeybind := "``"
 
 ; Edit this to change the seeds
-global seedItems := ["Carrot Seed", "Strawberry Seed", "Blueberry Seed"
-    , "Orange Tulip Seed", "Tomato Seed", "Corn Seed"
-    , "Daffodil Seed", "Watermelon Seed", "Pumpkin Seed"
-    , "Apple Seed", "Bamboo Seed", "Coconut Seed", "Cactus Seed"
-    , "Dragon Fruit Seed", "Mango Seed", "Grape Seed", "Mushroom Seed"
-    , "Pepper Seed", "Cacao Seed", "Beanstalk Seed", "Ember Lily"
-    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco", "Crimson Thorn"]
-global t2SeedItems := ["Broccoli Seed", "Potato Seed", "Brussels Sprout", "Cocomango Seed"]
+global seedItems := ["Carrot", "Strawberry", "Blueberry"
+    , "Orange Tulip", "Tomato", "Corn"
+    , "Daffodil", "Watermelon", "Pumpkin"
+    , "Apple", "Bamboo", "Coconut", "Cactus"
+    , "Dragon Fruit", "Mango", "Grape", "Mushroom"
+    , "Pepper", "Cacao", "Beanstalk", "Ember Lily"
+    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco", "Crimson Thorn", "Great Pumpking"]
+; global t2SeedItems := ["Broccoli", "Potato", "Brussels Sprout", "Cocomango"]
 
 ; Edit this to change the gear
 global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
@@ -33,21 +33,19 @@ global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "
 global t2EggItems := ["Pet Name Reroller", "Pet Lead"]
 
 ; Edit this to change what you want to be pinged for
-global pingList := ["Beanstalk Seed", "Ember Lily", "Sugar Apple", "Burning Bud","Giant Pinecone Seed","Elder Strawberry", "Master Sprinkler", "Grandmaster Sprinkler", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Mythical Egg", "Paradise Egg", "Bug Egg"]
+global pingList := ["Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud","Giant Pinecone","Elder Strawberry", "Master Sprinkler", "Grandmaster Sprinkler", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Mythical Egg", "Paradise Egg", "Bug Egg"]
 
 ; - Technical stuff below, no touchy! -
 
 global allList := []
 
 allList.Push(seedItems*)
-allList.Push(t2SeedItems*)
 allList.Push(gearItems*)
 allList.Push(eggItems*)
 allList.Push(t2EggItems*)
 ; allList.Push(eventItems*)
 
 global currentlyAllowedSeeds := []
-global currentlyAllowedT2Seeds := []
 global currentlyAllowedGear := []
 global currentlyAllowedEggs := []
 global currentlyAllowedT2Eggs := []
@@ -141,7 +139,7 @@ Alignment:
 
     Click, Right, Up
     Sleep, %sleepPerf%
-    
+
     ; turn on follow camera mode
     repeatKey("esc")
     sleep, %sleepPerf%
@@ -163,7 +161,7 @@ Alignment:
     keyEncoder("UUUUUUUUUUUDRRW")
     repeatKey("esc")
     keyEncoder("WDREWW") ; idk what this does but last time i removed it everything broke
-    
+
     ; make sure the camera isn't so close that it can't open shops
     recalibrateCameraDistance()
     tooltipLog("Alignment complete!")
@@ -172,7 +170,7 @@ SeedCycle:
     exitIfWindowDies()
 
     ; skip seeds if none are selected
-    if (currentlyAllowedSeeds.Length() = 0 && currentlyAllowedT2Seeds.Length() = 0) {
+    if (currentlyAllowedSeeds.Length() = 0) {
         Gosub, GearCycle
         Return
     }
@@ -185,33 +183,12 @@ SeedCycle:
     startUINav()
     Sleep, 3000
     if(isShopOpen()) {
-        ; reset back to t1 shop if t2 seeds are selected (assume the worse)
-        if(currentlyAllowedT2Seeds.Length() > 0) {
-            keyEncoder("RRRR")
-            repeatKey("Up", seedItems.Length() + 5)
-            keyEncoder("RRDRDWEWEWRUWEW")
-            startUINav()
-            startUINav()
-        }
-
         ; lets go buy some seeds
         keyEncoder("RRRR")
         repeatKey("Up", seedItems.Length() + 5)
         keyEncoder("RRDRD")
         tooltipLog("Shopping for seeds...")
         goShopping(currentlyAllowedSeeds, seedItems, smartBuying)
-
-        ; t2 time
-        if(currentlyAllowedT2Seeds.Length() > 0) {
-            repeatKey("Up", seedItems.Length() + 5)
-            keyEncoder("RRDDDEWUEWEWRLRWE")
-            startUINav()
-            startUINav()
-            keyEncoder("RRRR")
-            repeatKey("Up", seedItems.Length() + 5)
-            keyEncoder("RRDRD")
-            goShopping(currentlyAllowedT2Seeds, t2SeedItems, smartBuying, 10)
-        }
 
         ; close and report
         repeatKey("Up", seedItems.Length() + 5)
@@ -1070,21 +1047,9 @@ ShowGui:
 
     paddingY := groupBoxY + 50
     paddingX := groupBoxX + 25
-    Loop % t2SeedItems.Length() {
-        row := Mod(A_Index - 1, Ceil(t2SeedItems.Length() / cols))
-        col := 0
-        x := paddingX + (itemW * col)
-        y := paddingY + (itemH * row)
-        seed := t2SeedItems[A_Index]
-        isChecked := arrContains(currentlyAllowedT2Seeds, seed) ? 1 : 0
-        rarity := T2SeedsRarity(Seed)
-        color := itemColor(rarity)
-        Gui, Font, c%color% bold
-        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2SeedCheckboxes%A_Index% Checked%isChecked%, % seed
-    }
     Loop % t2EggItems.Length() {
         row := Mod(A_Index - 1, Ceil(t2EggItems.Length() / cols))
-        col := 1
+        col := 0
         x := paddingX + (itemW * col)
         y := paddingY + (itemH * row)
         egg := t2EggItems[A_Index]
@@ -1185,7 +1150,7 @@ ShowGui:
     Gui, Font, s8 cBlue, Segoe UI
     Gui, Add, Text, x250 y270 w150 h100, Macro Developer and Project Lead
 
-    Gui, Add, Link, x50 y330 w150 h30, <a href="https://github.com/HoodieRocks">Github</a>
+    Gui, Add, Link, x50 y310 w150 h30, <a href="https://github.com/HoodieRocks">Github</a>
     Gui, Add, Link, x250 y310 w150 h30, <a href="https://discord.gg/Fb4BBXxV9r">Macro Discord Server</a>
 
     Gui, Tab, Donators
@@ -1273,7 +1238,6 @@ loadValues() {
     AutoTrim, Off
 
     IniRead, currentlyAllowedSeedsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
-    IniRead, currentlyAllowedT2SeedsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Seeds
     IniRead, currentlyAllowedGearStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
     IniRead, currentlyAllowedEggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
     IniRead, currentlyAllowedT2EggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
@@ -1300,11 +1264,6 @@ loadValues() {
         currentlyAllowedSeeds := StrSplit(currentlyAllowedSeedsStr, ", ")
     else
         currentlyAllowedSeeds := []
-
-    if (currentlyAllowedT2SeedsStr != "" && currentlyAllowedT2SeedsStr != "ERROR")
-        currentlyAllowedT2Seeds := StrSplit(currentlyAllowedT2SeedsStr, ", ")
-    else
-        currentlyAllowedT2Seeds := []
 
     if (currentlyAllowedT2EggsStr != "" && currentlyAllowedT2EggsStr != "ERROR")
         currentlyAllowedT2Eggs := StrSplit(currentlyAllowedT2EggsStr, ", ")
@@ -1345,7 +1304,6 @@ saveValues() {
     currentlyAllowedSeedsStr := arrayToString(currentlyAllowedSeeds)
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
     currentlyAllowedEggsStr := arrayToString(currentlyAllowedEggs)
-    currentlyAllowedT2SeedsStr := arrayToString(currentlyAllowedT2Seeds)
     currentlyAllowedT2EggsStr := arrayToString(currentlyAllowedT2Eggs)
     pingListStr := arrayToString(pingList)
     autocraftingQueueStr := arrayToString(autocraftingQueue)
@@ -1354,7 +1312,6 @@ saveValues() {
     IniWrite, %currentlyAllowedSeedsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
     IniWrite, %currentlyAllowedGearStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
     IniWrite, %currentlyAllowedEggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
-    IniWrite, %currentlyAllowedT2SeedsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Seeds
     IniWrite, %currentlyAllowedT2EggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
     ; IniWrite, %currentlyAllowedEventStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
     IniWrite, %autocraftingQueueStr%, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
@@ -1423,12 +1380,10 @@ ToggleAllT2Items:
     toggleAllState("CheckAllT2Items", "t2EggCheckboxes", t2EggItems)
     toggleAllState("CheckAllT2Items", "t2SeedCheckboxes", t2SeedItems)
     updateCheckState(currentlyAllowedT2Eggs, t2EggItems, "t2EggCheckboxes")
-    updateCheckState(currentlyAllowedT2Seeds, t2SeedItems, "t2SeedCheckboxes")
 return
 
 UpdateT2ItemsState:
     updateCheckState(currentlyAllowedT2Eggs, t2EggItems, "t2EggCheckboxes")
-    updateCheckState(currentlyAllowedT2Seeds, t2SeedItems, "t2SeedCheckboxes")
 return
 
 UpdateAutoCraftingState:
