@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
 #Include, %A_ScriptDir%/modules/colors_LUT.ahk
 
-global version := "v2.8.5"
+global version := "v2.8.6a"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -26,7 +26,7 @@ global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
     , "Favorite Tool", "Harvest Tool", "Friendship Pot"
     , "Grandmast Sprinkler", "Levelup Lollipop"]
 
-; global eventItems := ["Evo Beetroot 1", "Evo Blueberry 1", "Evo Pumpkin 1", "Evo Mushroom 1"]
+global eventItems := ["Bloodred Mushroom", "Jack O Lantern", "Ghoul Root", "Chicken Feed", "Seer Vine", "Poison Apple"]
 
 ; Edit this to change the eggs
 global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Jungle Egg","Bug Egg"]
@@ -43,13 +43,13 @@ allList.Push(seedItems*)
 allList.Push(gearItems*)
 allList.Push(eggItems*)
 allList.Push(t2EggItems*)
-; allList.Push(eventItems*)
+allList.Push(eventItems*)
 
 global currentlyAllowedSeeds := []
 global currentlyAllowedGear := []
 global currentlyAllowedEggs := []
 global currentlyAllowedT2Eggs := []
-; global currentlyAllowedEvent := []
+global currentlyAllowedEvent := []
 
 global privateServerLink := ""
 global webhookURL := ""
@@ -319,7 +319,7 @@ Autocraft:
 
     ; if the item is still being crafted, wait for the next cycle
     if(currentACItem["time"] > 0 && currentACItem.Count() > 0) {
-        Gosub, WaitForNextCycle
+        Gosub, EventCycle
         Return
     }
 
@@ -392,62 +392,63 @@ Autocraft:
         startUINav()
     }
 
-; EventCycle:
-;     exitIfWindowDies()
+EventCycle:
+    exitIfWindowDies()
 
-;     ; skip seeds if none are selected
-;     if (currentlyAllowedEvent.Length() = 0) {
-;         Gosub, WaitForNextCycle
-;         Return
-;     }
+    ; skip seeds if none are selected
+    if (currentlyAllowedEvent.Length() = 0) {
+        Gosub, WaitForNextCycle
+        Return
+    }
 
-;     ; open shop
-;     recalibrateCameraDistance()
-;     if(walkToEvent) {
-;         startUINav()
-;         keyEncoder("WUUULLLURRRWE")
-;         startUINav()
-;         Sleep, 300
-;         holdKey("d", 8000)
-;         Sleep, 300
-;         holdKey("up", 500)
-;         Sleep, 300
-;         holdKey("d", 1000)
-;         Sleep, 300
-;         holdKey("down", 500)
-;     } else {
-;         tpWithItem(3)
-;     }
-
-;     Loop, 2 {
-;         Send, {WheelDown}
-;         Sleep, 10
-;     }
-
-;     Sleep, 1000
-;     repeatKey("e")
-;     Sleep, 2000
-;     Loop, 7 {
-;         Send, {WheelUp}
-;         Sleep, 10
-;     }
-;     Sleep, 1500
-;     SafeClickRelative(0.9, 0.35)
-;     Sleep, 1000
-;     startUINav()
-;     Sleep, 1000
-;     if(isShopOpen()) {
-;         keyEncoder("RRRR")
-;         repeatKey("Up", 40)
-;         keyEncoder("RRD")
-;         tooltipLog("Shopping for event seeds...")
-;         goShopping(currentlyAllowedEvent, eventItems, 10, true)
-;         repeatKey("Up", 40)
-;         keyEncoder("RRRRLUUWEW")
-;         sendDiscordQueue("Event Shop")
-;         startUINav()
-;     }
-;     recalibrateCameraDistance()
+    ; open shop
+    recalibrateCameraDistance()
+    ; TODO: fix for new event
+    ; if(walkToEvent) {
+    ;     startUINav()
+    ;     keyEncoder("WUUULLLURRRWE")
+    ;     startUINav()
+    ;     Sleep, 300
+    ;     holdKey("d", 8000)
+    ;     Sleep, 300
+    ;     holdKey("up", 500)
+    ;     Sleep, 300
+    ;     holdKey("d", 1000)
+    ;     Sleep, 300
+    ;     holdKey("down", 500)
+    ; } else {
+    tpWithItem(3)
+    Sleep, 300
+    holdKey("up", 500)
+    Sleep, 300
+    holdKey("d", 3200)
+    Sleep, 300
+    holdKey("down", 900)
+    Sleep, 300
+    ; }
+    
+    Loop, 2 {
+        Send, {WheelDown}
+        Sleep, 10
+    }
+    Sleep, 300
+    
+    repeatKey("e")
+    Sleep, 1000
+    startUINav()
+    Sleep, 1000
+    if(isShopOpen()) {
+        keyEncoder("RRRR")
+        repeatKey("Up", eventItems.Length() + 5)
+        keyEncoder("RRD")
+        tooltipLog("Shopping for event seeds...")
+        goShopping(currentlyAllowedEvent, eventItems, smartBuying, 10, true)
+        repeatKey("Up", eventItems.Length() + 5)
+        keyEncoder("RRRRLUUWEW")
+        sendDiscordQueue("Event Shop")
+        startUINav()
+    }
+    recalibrateCameraDistance()
 
 WaitForNextCycle:
     ; reset for next run and show the timer
@@ -462,10 +463,9 @@ Return
 tpWithItem(slot) {
     tooltipLog("Teleporting to shop...")
     Send, {%slot%}
+    Sleep, 600
     SafeClickRelative(0.5, 0.5)
-    Sleep, 400
-    Send, {%slot%}
-    Sleep, 400
+    Sleep, 600
 }
 
 reconnect() {
@@ -943,7 +943,7 @@ ShowGui:
     groupBoxH := 320
 
     Gui, Font, s10 bold
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Ping List|Settings|Credits|Donators
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Event|Ping List|Settings|Credits|Donators
 
     ; seeds
     Gui, Font, s10 c1C96EF
@@ -1060,28 +1060,28 @@ ShowGui:
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2EggCheckboxes%A_Index% Checked%isChecked%, % egg
         Gui, Font, cWhite bold
     }
-    ; Gui, Tab, Event
-    ; Gui, Font, s10
-    ; Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
+    Gui, Tab, Event
+    Gui, Font, s10
+    Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
 
-    ; Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllEventItems gToggleAllEvent cFFFF28, Select All Evo Seeds
+    Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllEventItems gToggleAllEvent cFFFF28, Select All Evo Seeds
 
-    ; paddingY := groupBoxY + 50
-    ; paddingX := groupBoxX + 25
-    ; cols := 1
-    ; Loop % eventItems.Length() {
-    ;     row := Mod(A_Index - 1, Ceil(eventItems.Length() / cols))
-    ;     col := Floor((A_Index - 1) / Ceil(eventItems.Length() / cols))
-    ;     x := paddingX + (itemW * col)
-    ;     y := paddingY + (itemH * row)
-    ;     item := eventItems[A_Index]
-    ;     isChecked := arrContains(currentlyAllowedEvent, item) ? 1 : 0
-    ;     rarity := EventRarity(item)
-    ;     color := itemColor(rarity)
-    ;     Gui, Font, c%color% bold
-    ;     Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateEventState veventCheckboxes%A_Index% Checked%isChecked%, % item
-    ;     Gui, Font, cFFFFFF bold
-    ; }
+    paddingY := groupBoxY + 50
+    paddingX := groupBoxX + 25
+    cols := 1
+    Loop % eventItems.Length() {
+        row := Mod(A_Index - 1, Ceil(eventItems.Length() / cols))
+        col := Floor((A_Index - 1) / Ceil(eventItems.Length() / cols))
+        x := paddingX + (itemW * col)
+        y := paddingY + (itemH * row)
+        item := eventItems[A_Index]
+        isChecked := arrContains(currentlyAllowedEvent, item) ? 1 : 0
+        rarity := EventRarity(item)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
+        Gui, Add, Checkbox, x%x% y%y% w200 h23 gUpdateEventState veventCheckboxes%A_Index% Checked%isChecked%, % item
+        Gui, Font, cFFFFFF bold
+    }
     ; ---
 
     Gui, Tab, Ping List
@@ -1241,7 +1241,7 @@ loadValues() {
     IniRead, currentlyAllowedGearStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
     IniRead, currentlyAllowedEggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
     IniRead, currentlyAllowedT2EggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
-    ; IniRead, currentlyAllowedEventStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
+    IniRead, currentlyAllowedEventStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
     IniRead, autocraftingQueueStr, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
     IniRead, pingListStr, %A_ScriptDir%/config.ini, PersistentData, pingList
     ; IniRead, walkToEventStr, %A_ScriptDir%/config.ini, PlayerConf, walkToEvent, 0
@@ -1281,10 +1281,10 @@ loadValues() {
     else
         currentlyAllowedEggs := []
 
-    ; if (currentlyAllowedEventStr != "" && currentlyAllowedEventStr != "ERROR")
-    ;     currentlyAllowedEvent := StrSplit(currentlyAllowedEventStr, ", ")
-    ; else
-    ;     currentlyAllowedEvent := []
+    if (currentlyAllowedEventStr != "" && currentlyAllowedEventStr != "ERROR")
+        currentlyAllowedEvent := StrSplit(currentlyAllowedEventStr, ", ")
+    else
+        currentlyAllowedEvent := []
 
     if (autocraftingQueueStr != "" && autocraftingQueueStr != "ERROR")
         autocraftingQueue := StrSplit(autocraftingQueueStr, ", ")
@@ -1307,13 +1307,13 @@ saveValues() {
     currentlyAllowedT2EggsStr := arrayToString(currentlyAllowedT2Eggs)
     pingListStr := arrayToString(pingList)
     autocraftingQueueStr := arrayToString(autocraftingQueue)
-    ; currentlyAllowedEventStr := arrayToString(currentlyAllowedEvent)
+    currentlyAllowedEventStr := arrayToString(currentlyAllowedEvent)
 
     IniWrite, %currentlyAllowedSeedsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
     IniWrite, %currentlyAllowedGearStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
     IniWrite, %currentlyAllowedEggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
     IniWrite, %currentlyAllowedT2EggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
-    ; IniWrite, %currentlyAllowedEventStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
+    IniWrite, %currentlyAllowedEventStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
     IniWrite, %autocraftingQueueStr%, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
     IniWrite, %pingListStr%, %A_ScriptDir%/config.ini, PersistentData, pingList
 }
@@ -1363,14 +1363,14 @@ ToggleAllEggs:
     updateCheckState(currentlyAllowedEggs, eggItems, "eggCheckboxes")
 return
 
-; ToggleAllEvent:
-;     toggleAllState("CheckAllEventItems", "eventCheckboxes", eventItems)
-;     updateCheckState(currentlyAllowedEvent, eventItems, "eventCheckboxes")
-; return
+ToggleAllEvent:
+    toggleAllState("CheckAllEventItems", "eventCheckboxes", eventItems)
+    updateCheckState(currentlyAllowedEvent, eventItems, "eventCheckboxes")
+return
 
-; UpdateEventState:
-;     updateCheckState(currentlyAllowedEvent, eventItems, "eventCheckboxes")
-; return
+UpdateEventState:
+    updateCheckState(currentlyAllowedEvent, eventItems, "eventCheckboxes")
+return
 
 UpdateEggState:
     updateCheckState(currentlyAllowedEggs, eggItems, "eggCheckboxes")

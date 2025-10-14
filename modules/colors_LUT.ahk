@@ -115,10 +115,12 @@ EventRarity(Seed) {
     static rarityMap
     if (!IsObject(rarityMap)) {
         rarityMap := Object()
-        rarityMap ["Evo Beetroot 1"] := "Common"
-        rarityMap ["Evo Blueberry 1"] := "Uncommon"
-        rarityMap ["Evo Pumpkin 1"] := "Rare"
-        rarityMap ["Evo Mushroom 1"] := "Legendary"
+        rarityMap ["Bloodred Mushroom"] := "Uncommon"
+        rarityMap ["Jack O Lantern"] := "Rare"
+        rarityMap ["Ghoul Root"] := "Legendary"
+        rarityMap ["Chicken Feed"] := "Mythical"
+        rarityMap ["Seer Vine"] := "Divine"
+        rarityMap ["Poison Apple"] := "Prismatic"
 
     }
     return rarityMap.HasKey(Seed) ? rarityMap[Seed] : ""
