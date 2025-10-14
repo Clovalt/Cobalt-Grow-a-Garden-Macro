@@ -62,6 +62,7 @@ global finished := true
 global cycleCount := 0
 global eggCounter := 0
 global canDoEgg := true
+global canDoEvent := true
 
 global started := 0
 global messageQueue := []
@@ -396,7 +397,7 @@ EventCycle:
     exitIfWindowDies()
 
     ; skip seeds if none are selected
-    if (currentlyAllowedEvent.Length() = 0) {
+    if (currentlyAllowedEvent.Length() = 0 || !canDoEvent) {
         Gosub, WaitForNextCycle
         Return
     }
@@ -555,12 +556,23 @@ ShowTimeTip:
     RemainingSecs30 := Mod(SecondsUntil30, 60)
     FormattedTime30 := Format("{:02}:{:02}", RemainingMins30, RemainingSecs30)
 
+    ; 60 minute timer (event)
+    SecondsUntil60 := 3600 - (Mod(A_Min, 60) * 60 + A_Sec)
+    SecondsUntil60 := Mod(SecondsUntil60, 3601)
+    RemainingMins60 := Floor(SecondsUntil60 / 60)
+    RemainingSecs60 := Mod(SecondsUntil60, 60)
+    FormattedTime60 := Format("{:02}:{:02}", RemainingMins60, RemainingSecs60)
+
     if (SecondsUntil30 < 3 || adminAbuse) {
         canDoEgg := true
     }
 
+    if (SecondsUntil60 < 3) {
+        canDoEvent := true
+    }
+
     if(!adminAbuse) {
-        ToolTip, Next cycle in %FormattedTime5%`nNext Egg Cycle in %FormattedTime30%
+        ToolTip, Next cycle in %FormattedTime5%`nNext Egg Cycle in %FormattedTime30%`nNext Event Cycle in %FormattedTime60%
     }
 
     if (SecondsUntil5 < 3 || adminAbuse) {
