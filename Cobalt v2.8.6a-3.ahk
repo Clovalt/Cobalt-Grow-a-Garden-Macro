@@ -45,6 +45,7 @@ global started := 0
 global messageQueue := []
 global sleepPerf := 200
 global crashCounter := 0
+global fastSmartBuy := false
 
 global perfSetting := "Default"
 global autocraftingQueue := []
@@ -428,9 +429,9 @@ EventCycle:
     }
     recalibrateCameraDistance()
     
-    PassShopCycle:
+PassShopCycle:
     exitIfWindowDies()
-    if (passItems.Length() = 0) {
+    if (currentlyAllowedPassItems.Length() = 0) {
         Gosub, WaitForNextCycle
         Return
     }
@@ -513,7 +514,7 @@ exitIfWindowDies() {
 genericImageSearch(imagePath) {
     startXPercent := 43
     startYPercent := 27
-    endXPercent := 72
+    endXPercent := 50
     endYPercent := 82
 
     CoordMode, Pixel, Screen
@@ -591,7 +592,7 @@ goShopping(arr, allArr, smartBuying, spamCount := 30, isEvent := false) {
             Continue
         }
         if(smartBuying) {
-            buyAllAvailableSmart(spamCount, item, !isEvent)
+            buyAllAvailableSmart(spamCount, item, !isEvent, !fastSmartBuy)
         } else {
             buyAllAvailable(spamCount, item, !isEvent)
         }
@@ -615,7 +616,7 @@ buyAllAvailable(spamCount := 30, item := "", useLeft := true) {
 }
 
 ; almost ready
-buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true) {
+buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true, shouldCount := true) {
     repeatKey("Enter")
     repeatKey("Down")
     if(isThereStock()) {
@@ -628,10 +629,19 @@ buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true) {
                 Break
             }
             SendInput, {Enter}
-            Sleep, 300
-            count += 1
+            if(shouldCount) {
+                Sleep, 300
+                count += 1
+            } else {
+                Sleep, %sleepPerf%
+            }
         }
-        messageQueue.Push("Bought " . count . " " . item . "s!")
+
+        if(shouldCount) {
+            messageQueue.Push("Bought " . count . " " . item . "s!")
+        } else {
+            messageQueue.Push("Bought " . item . "s!")
+        }
     }
     repeatKey("Down")
 }
@@ -1161,12 +1171,14 @@ ShowGui:
     Gui, Add, Button, h30 w215 x50 y350 gGuiStartMacro, Start Macro (F5)
     Gui, Add, Button, h30 w215 x285 y350 gPauseMacro, Stop Macro (F7)
     Gui, Font, s10 cWhite, Segoe UI
-    Gui, Add, Checkbox, x50 y275 w151 h23 vadminAbuse, Admin Abuse
+    Gui, Add, Checkbox, x50 y255 w151 h23 vadminAbuse, Admin Abuse
     ; Gui, Add, Checkbox, x50 y295 w151 h23 vwalkToEvent gUpdatePlayerValues, Walk to Event Shop (reliability issues)
-    Gui, Add, Checkbox, x50 y295 w151 h23 vsmartBuying gUpdatePlayerValues, Smart Buying (BETA)
+    Gui, Add, Checkbox, x50 y275 w151 h23 vsmartBuying gUpdatePlayerValues, Smart Buying (BETA)
+    Gui, Add, Checkbox, x50 y295 w300 h23 vfastSmartBuy gUpdatePlayerValues, Fast Smart Buying (requires Smart Buying)
 
     ; GuiControl,, walkToEvent, % walkToEvent
     GuiControl,, smartBuying, % smartBuying
+    GuiControl,, fastSmartBuy, % fastSmartBuy
 
     Gui, Tab, Credits
     Gui, Font, s10
@@ -1267,6 +1279,7 @@ loadValues() {
     IniRead, discordID, %A_ScriptDir%/config.ini, PlayerConf, discordID, %A_Space%
     IniRead, perfSetting, %A_ScriptDir%/config.ini, PlayerConf, perfSetting, Default
     IniRead, uiNavKeybindStr, %A_ScriptDir%/config.ini, PlayerConf, uiNavKeybind
+    IniRead, fastSmartBuyStr, %A_ScriptDir%/config.ini, PlayerConf, fastSmartBuy, 0
     AutoTrim, Off
 
     IniRead, currentlyAllowedSeedsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
@@ -1282,6 +1295,7 @@ loadValues() {
 
     ; walkToEvent := walkToEventStr = "1" ? true : false
     smartBuying := smartBuyingStr = "1" ? true : false
+    fastSmartBuy := fastSmartBuyStr = "1" ? true : false
 
     if(pingListStr != "" and pingListStr != "ERROR") {
         pingList := StrSplit(pingListStr, ", ")
@@ -1338,6 +1352,7 @@ saveValues() {
     IniWrite, %uiNavKeybind%, %A_ScriptDir%/config.ini, PlayerConf, uiNavKeybind
     ; IniWrite, %walkToEvent%, %A_ScriptDir%/config.ini, PlayerConf, walkToEvent
     IniWrite, %smartBuying%, %A_ScriptDir%/config.ini, PlayerConf, smartBuying
+    IniWrite, %fastSmartBuy%, %A_ScriptDir%/config.ini, PlayerConf, fastSmartBuy
 
     currentlyAllowedSeedsStr := arrayToString(currentlyAllowedSeeds)
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
