@@ -1,36 +1,12 @@
 #SingleInstance, force
-#Include, %A_ScriptDir%/modules/autocrafting_LUT.ahk
-#Include, %A_ScriptDir%/modules/colors_LUT.ahk
+#Include, %A_ScriptDir%/modules/items.ahk
+#Include, %A_ScriptDir%/modules/colors.ahk
 
 global version := "v2.8.6a"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
 global invNavKeybind := "``"
-
-; Edit this to change the seeds
-global seedItems := ["Carrot", "Strawberry", "Blueberry"
-    , "Orange Tulip", "Tomato", "Corn"
-    , "Daffodil", "Watermelon", "Pumpkin"
-    , "Apple", "Bamboo", "Coconut", "Cactus"
-    , "Dragon Fruit", "Mango", "Grape", "Mushroom"
-    , "Pepper", "Cacao", "Beanstalk", "Ember Lily"
-    , "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry","Romanesco", "Crimson Thorn", "Great Pumpking"]
-; global t2SeedItems := ["Broccoli", "Potato", "Brussels Sprout", "Cocomango"]
-
-; Edit this to change the gear
-global gearItems := ["Watering Can", "Trading Ticket", "Trowel"
-    , "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler"
-    , "Medium Toy","Medium Treat", "Godly Sprinkler"
-    , "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Cleansing Pet Shard"
-    , "Favorite Tool", "Harvest Tool", "Friendship Pot"
-    , "Grandmast Sprinkler", "Levelup Lollipop"]
-
-global eventItems := ["Bloodred Mushroom", "Jack O Lantern", "Ghoul Root", "Chicken Feed", "Seer Vine", "Poison Apple"]
-
-; Edit this to change the eggs
-global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Jungle Egg","Bug Egg"]
-global t2EggItems := ["Pet Name Reroller", "Pet Lead"]
 
 ; Edit this to change what you want to be pinged for
 global pingList := ["Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud","Giant Pinecone","Elder Strawberry", "Master Sprinkler", "Grandmaster Sprinkler", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Mythical Egg", "Paradise Egg", "Bug Egg"]
@@ -50,6 +26,7 @@ global currentlyAllowedGear := []
 global currentlyAllowedEggs := []
 global currentlyAllowedT2Eggs := []
 global currentlyAllowedEvent := []
+global currentlyAllowedPassItems := []
 
 global privateServerLink := ""
 global webhookURL := ""
@@ -398,7 +375,7 @@ EventCycle:
 
     ; skip seeds if none are selected
     if (currentlyAllowedEvent.Length() = 0 || !canDoEvent) {
-        Gosub, WaitForNextCycle
+        Gosub, PassShopCycle
         Return
     }
 
@@ -450,6 +427,26 @@ EventCycle:
         startUINav()
     }
     recalibrateCameraDistance()
+    
+    PassShopCycle:
+    exitIfWindowDies()
+    if (passItems.Length() = 0) {
+        Gosub, WaitForNextCycle
+        Return
+    }
+    
+    tooltipLog("Opening pass shop...")
+    startUINav()
+    keyEncoder("LLUE")
+    ; no exit if it fails since this shouldn't fail often
+    if(isShopOpen()) {
+        keyEncoder("RUUUURRRDREDDD")
+        goShopping(currentlyAllowedPassItems, passItems, smartBuying, 10, true)
+        repeatKey("Up", (passItems.Length() * 2) + 5)
+        keyEncoder("RRRRWE")
+    }
+
+
 
 WaitForNextCycle:
     ; reset for next run and show the timer
@@ -955,7 +952,7 @@ ShowGui:
     groupBoxH := 320
 
     Gui, Font, s10 bold
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Event|Ping List|Settings|Credits|Donators
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Event|Pass|Ping List|Settings|Credits|Donators
 
     ; seeds
     Gui, Font, s10 c1C96EF
@@ -1092,6 +1089,29 @@ ShowGui:
         color := itemColor(rarity)
         Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w200 h23 gUpdateEventState veventCheckboxes%A_Index% Checked%isChecked%, % item
+        Gui, Font, cFFFFFF bold
+    }
+
+    Gui, Tab, Pass
+    Gui, Font, s10
+    Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
+
+    Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllPassItems gToggleAllPassItems cFFFF28, Select All Pass Items
+
+    paddingY := groupBoxY + 50
+    paddingX := groupBoxX + 25
+    cols := 1
+    Loop % passItems.Length() {
+        row := Mod(A_Index - 1, Ceil(passItems.Length() / cols))
+        col := Floor((A_Index - 1) / Ceil(passItems.Length() / cols))
+        x := paddingX + (itemW * col)
+        y := paddingY + (itemH * row)
+        item := passItems[A_Index]
+        isChecked := arrContains(currentlyAllowedPassItems, item) ? 1 : 0
+        rarity := PassRarity(item)
+        color := itemColor(rarity)
+        Gui, Font, c%color% bold
+        Gui, Add, Checkbox, x%x% y%y% w200 h23 gUpdatePassState vpassCheckboxes%A_Index% Checked%isChecked%, % item
         Gui, Font, cFFFFFF bold
     }
     ; ---
@@ -1254,6 +1274,7 @@ loadValues() {
     IniRead, currentlyAllowedEggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
     IniRead, currentlyAllowedT2EggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
     IniRead, currentlyAllowedEventStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
+    IniRead, currentlyAllowedPassStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedPassItems
     IniRead, autocraftingQueueStr, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
     IniRead, pingListStr, %A_ScriptDir%/config.ini, PersistentData, pingList
     ; IniRead, walkToEventStr, %A_ScriptDir%/config.ini, PlayerConf, walkToEvent, 0
@@ -1298,6 +1319,11 @@ loadValues() {
     else
         currentlyAllowedEvent := []
 
+    if (currentlyAllowedPassStr != "" && currentlyAllowedPassStr != "ERROR")
+        currentlyAllowedPassItems := StrSplit(currentlyAllowedPassStr, ", ")
+    else
+        currentlyAllowedPassItems := []
+
     if (autocraftingQueueStr != "" && autocraftingQueueStr != "ERROR")
         autocraftingQueue := StrSplit(autocraftingQueueStr, ", ")
     else
@@ -1320,12 +1346,14 @@ saveValues() {
     pingListStr := arrayToString(pingList)
     autocraftingQueueStr := arrayToString(autocraftingQueue)
     currentlyAllowedEventStr := arrayToString(currentlyAllowedEvent)
+    currentlyAllowedPassStr := arrayToString(currentlyAllowedPassItems)
 
     IniWrite, %currentlyAllowedSeedsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
     IniWrite, %currentlyAllowedGearStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
     IniWrite, %currentlyAllowedEggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
     IniWrite, %currentlyAllowedT2EggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
     IniWrite, %currentlyAllowedEventStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
+    IniWrite, %currentlyAllowedPassStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedPassItems
     IniWrite, %autocraftingQueueStr%, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
     IniWrite, %pingListStr%, %A_ScriptDir%/config.ini, PersistentData, pingList
 }
@@ -1359,6 +1387,15 @@ Return
 
 UpdateSeedState:
     updateCheckState(currentlyAllowedSeeds, seedItems, "seedCheckboxes")
+return
+
+ToggleAllPassItems:
+    toggleAllState("CheckAllPassItems", "passCheckboxes", passItems)
+    updateCheckState(currentlyAllowedPassItems, passItems, "passCheckboxes")
+Return
+
+UpdatePassState:
+    updateCheckState(currentlyAllowedPassItems, passItems, "passCheckboxes")
 return
 
 ToggleAllGear:

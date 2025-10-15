@@ -125,3 +125,18 @@ EventRarity(Seed) {
     }
     return rarityMap.HasKey(Seed) ? rarityMap[Seed] : ""
 }
+
+PassRarity(Item) {
+    static rarityMap
+    if (!IsObject(rarityMap)) {
+        rarityMap := Object()
+        rarityMap ["Prime Crate"] := "Common"
+        rarityMap ["Egg Yolk Mat"] := "Mythical"
+        rarityMap ["Silver Fertilizer"] := "Mythical"
+        rarityMap ["Prime Seed Pack"] := "Divine"
+        rarityMap ["Levelup Lollipop"] := "Prismatic"
+        rarityMap ["Grow All"] := "Prismatic"
+        rarityMap ["Naval Wort"] := "Prismatic"
+    }
+    return rarityMap.HasKey(Item) ? rarityMap[Item] : ""
+}
