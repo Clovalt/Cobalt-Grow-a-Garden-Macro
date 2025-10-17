@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/items.ahk
 #Include, %A_ScriptDir%/modules/colors.ahk
 
-global version := "v2.8.6a-3"
+global version := "v2.8.6a-4"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -350,7 +350,12 @@ Autocraft:
         ; 1. clear any incomplete crafting, 2. claim crafting that completed, and 3. open crafting menu
         ; the double e works fine since pressing it twice just reopens the shop anyways
         SendInput, c
-        Sleep, 5000
+        Sleep, 3000
+        Loop, 5 {
+            Send, {WheelUp}
+            Sleep, 10
+        }
+        Sleep, 2000
         SendInput, e
         Sleep, 1000
         SendInput, e
@@ -649,8 +654,8 @@ buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true, shouldCount :
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
     keyEncoder("RRRR")
-    repeatKey("up", shopObj.Length() + 5)
-    keyEncoder("LLLLURRRRRRLWWEWWEWW")
+    repeatKey("up", shopObj.Length() + 10)
+    keyEncoder("LLLLURRRRRDDWWEWWEWW")
     count := findScuffedIndex(shopObj, item)
     repeatKey("down", count - 1)
     keyEncoder("WWWEWDWE")
@@ -689,7 +694,7 @@ colorDetect(c, v := 5) {
     y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
     PixelSearch, px, py, x1, y1, x2, y2, c, v, Fast RGB
-    ; MouseMove, px, py ; uncomment to test colo(u)r detection
+    MouseMove, px, py ; uncomment to test colo(u)r detection
     if(ErrorLevel = 0) {
         return true
     } else if (ErrorLevel = 2) {
