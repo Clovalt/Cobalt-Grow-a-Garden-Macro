@@ -34,10 +34,11 @@ global discordID := ""
 global longRecon := false
 global adminAbuse := false
 global smartBuying := false
+global fastSmartBuy := false
+global autoCollection := false
 
 global finished := true
 global cycleCount := 0
-global eggCounter := 0
 global canDoEgg := true
 global canDoEvent := true
 
@@ -45,7 +46,6 @@ global started := 0
 global messageQueue := []
 global sleepPerf := 200
 global crashCounter := 0
-global fastSmartBuy := false
 
 global perfSetting := "Default"
 global autocraftingQueue := []
@@ -298,7 +298,7 @@ Autocraft:
 
     ; if the item is still being crafted, wait for the next cycle
     if(currentACItem["time"] > 0 && currentACItem.Count() > 0) {
-        Gosub, EventCycle
+        Gosub, AutoCollection
         Return
     }
 
@@ -366,15 +366,62 @@ Autocraft:
         ; if crafting is opened, select the item, input the items, and start crafting
         if(isShopOpen()) {
             index := selectCraftableItem(category, item)
-            Sleep, 1000
+            Sleep, 500
             SendInput, f ; fill items
-            Sleep, 1000
+            Sleep, 500
             SendInput, e ; start crafting
             sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentACItem["time"] . "`` minutes.")
         }
         Sleep, 500
         startUINav()
     }
+
+AutoCollection:
+    exitIfWindowDies()
+
+    if(!autoCollection) {
+        Gosub, EventCycle
+        Return
+    }
+
+    tooltipLog("Starting autocollection...")
+    startUINav()
+    keyEncoder("UULLLLURRRREW")
+    startUINav()
+    recalibrateCameraDistance()
+    Sleep, 500
+    Loop, 5 {
+        Send, {WheelDown}
+        Sleep, 10
+    }
+
+    ; Loop, 7 {
+    ;     holdKey("down", 1000) ; walk to autocollect area
+    ;     ; start collecting
+    ;     holdKey("e", 2000)
+    ; }
+    recalibrateCameraDistance()
+    Sleep, 500
+
+    ; event specific stuff
+    tpWithItem(3)
+    Sleep, 300
+    holdKey("down", 300)
+    Sleep, 300
+    Loop, 2 {
+        Send, {WheelDown}
+        Sleep, 10
+    }
+    Sleep, 300
+    repeatKey("e")
+    Sleep, 1000
+    Loop, 7 {
+        Send, {WheelUp}
+        Sleep, 10
+    }
+    Sleep, 1000
+    SafeClickRelative(0.9, 0.70)
+    Sleep, 3000
 
 EventCycle:
     exitIfWindowDies()
@@ -405,18 +452,22 @@ EventCycle:
     Sleep, 300
     holdKey("up", 500)
     Sleep, 300
-    holdKey("d", 3200)
+    holdKey("d", 1800)
+    Sleep, 300
+    holdKey("down", 500)
+    Sleep, 300
+    holdKey("d", 1200)
     Sleep, 300
     holdKey("down", 900)
     Sleep, 300
     ; }
-    
+
     Loop, 2 {
         Send, {WheelDown}
         Sleep, 10
     }
     Sleep, 300
-    
+
     repeatKey("e")
     Sleep, 1000
     startUINav()
@@ -433,14 +484,24 @@ EventCycle:
         startUINav()
     }
     recalibrateCameraDistance()
-    
+; Sleep, 300
+; holdKey("a", 800)
+; Sleep, 300
+; holdKey("down", 500)
+
+; Loop, 2 {
+;     Send, {WheelDown}
+;     Sleep, 10
+; }
+; Sleep, 300
+
 PassShopCycle:
     exitIfWindowDies()
     if (currentlyAllowedPassItems.Length() = 0) {
         Gosub, WaitForNextCycle
         Return
     }
-    
+
     tooltipLog("Opening pass shop...")
     startUINav()
     keyEncoder("LLUE")
@@ -1183,12 +1244,14 @@ ShowGui:
     Gui, Font, s10 cWhite, Segoe UI
     Gui, Add, Checkbox, x50 y255 w151 h23 vadminAbuse, Admin Abuse
     ; Gui, Add, Checkbox, x50 y295 w151 h23 vwalkToEvent gUpdatePlayerValues, Walk to Event Shop (reliability issues)
-    Gui, Add, Checkbox, x50 y275 w151 h23 vsmartBuying gUpdatePlayerValues, Smart Buying (BETA)
+    Gui, Add, Checkbox, x50 y275 w151 h23 vsmartBuying gUpdatePlayerValues, Smart Buying
     Gui, Add, Checkbox, x50 y295 w300 h23 vfastSmartBuy gUpdatePlayerValues, Fast Smart Buying (requires Smart Buying)
+    Gui, Add, Checkbox, x50 y315 w300 h23 vautoCollection gUpdatePlayerValues, Auto Submit Plants (BETA)
 
     ; GuiControl,, walkToEvent, % walkToEvent
     GuiControl,, smartBuying, % smartBuying
     GuiControl,, fastSmartBuy, % fastSmartBuy
+    GuiControl,, autoCollection, % autoCollection
 
     Gui, Tab, Credits
     Gui, Font, s10
@@ -1290,6 +1353,7 @@ loadValues() {
     IniRead, perfSetting, %A_ScriptDir%/config.ini, PlayerConf, perfSetting, Default
     IniRead, uiNavKeybindStr, %A_ScriptDir%/config.ini, PlayerConf, uiNavKeybind
     IniRead, fastSmartBuyStr, %A_ScriptDir%/config.ini, PlayerConf, fastSmartBuy, 0
+    IniRead, autoCollectionStr, %A_ScriptDir%/config.ini, PlayerConf, autoCollection, 0
     AutoTrim, Off
 
     IniRead, currentlyAllowedSeedsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
@@ -1306,6 +1370,7 @@ loadValues() {
     ; walkToEvent := walkToEventStr = "1" ? true : false
     smartBuying := smartBuyingStr = "1" ? true : false
     fastSmartBuy := fastSmartBuyStr = "1" ? true : false
+    autoCollection := autoCollectionStr = "1" ? true : false
 
     if(pingListStr != "" and pingListStr != "ERROR") {
         pingList := StrSplit(pingListStr, ", ")
@@ -1363,6 +1428,7 @@ saveValues() {
     ; IniWrite, %walkToEvent%, %A_ScriptDir%/config.ini, PlayerConf, walkToEvent
     IniWrite, %smartBuying%, %A_ScriptDir%/config.ini, PlayerConf, smartBuying
     IniWrite, %fastSmartBuy%, %A_ScriptDir%/config.ini, PlayerConf, fastSmartBuy
+    IniWrite, %autoCollection%, %A_ScriptDir%/config.ini, PlayerConf, autoCollection
 
     currentlyAllowedSeedsStr := arrayToString(currentlyAllowedSeeds)
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
