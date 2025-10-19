@@ -233,7 +233,7 @@ EggCycle:
 
         ; click the open egg shop dialog option
         SafeClickRelative(0.75, 0.2)
-        Sleep 3000
+        Sleep, 5000
 
         if(isShopOpen()) {
             startUINav()
@@ -444,15 +444,20 @@ PassShopCycle:
     tooltipLog("Opening pass shop...")
     startUINav()
     keyEncoder("LLUE")
+    startUINav()
+    startUINav()
     ; no exit if it fails since this shouldn't fail often
     if(isShopOpen()) {
-        keyEncoder("RUUUURRRDREDDD")
+        tooltipLog("Shopping for pass items...")
+        keyEncoder("RRRRUD")
+        repeatKey("Up", (passItems.Length() * 2) + 5)
+        keyEncoder("LLLLURRRRRDREDDD")
         goShopping(currentlyAllowedPassItems, passItems, smartBuying, 10, true)
         repeatKey("Up", (passItems.Length() * 2) + 5)
         keyEncoder("RRRRWE")
     }
-
-
+    Sleep, 500
+    startUINav()
 
 WaitForNextCycle:
     ; reset for next run and show the timer
@@ -694,7 +699,7 @@ colorDetect(c, v := 5) {
     y2 := Round((endYPercent / 100) * A_ScreenHeight)
 
     PixelSearch, px, py, x1, y1, x2, y2, c, v, Fast RGB
-    MouseMove, px, py ; uncomment to test colo(u)r detection
+    ; MouseMove, px, py ; uncomment to test colo(u)r detection
     if(ErrorLevel = 0) {
         return true
     } else if (ErrorLevel = 2) {
