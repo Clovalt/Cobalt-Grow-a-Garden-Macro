@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/items.ahk
 #Include, %A_ScriptDir%/modules/colors.ahk
 
-global version := "v2.8.6a-5"
+global version := "v2.8.6b-1"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -395,11 +395,11 @@ AutoCollection:
         Sleep, 10
     }
 
-    ; Loop, 7 {
-    ;     holdKey("down", 1000) ; walk to autocollect area
-    ;     ; start collecting
-    ;     holdKey("e", 2000)
-    ; }
+    Loop, 10 {
+        holdKey("down", 500) ; walk to autocollect area
+        ; start collecting
+        holdKey("e", 3000)
+    }
     recalibrateCameraDistance()
     Sleep, 500
 
@@ -434,21 +434,11 @@ EventCycle:
 
     ; open shop
     recalibrateCameraDistance()
-    ; TODO: fix for new event
-    ; if(walkToEvent) {
-    ;     startUINav()
-    ;     keyEncoder("WUUULLLURRRWE")
-    ;     startUINav()
-    ;     Sleep, 300
-    ;     holdKey("d", 8000)
-    ;     Sleep, 300
-    ;     holdKey("up", 500)
-    ;     Sleep, 300
-    ;     holdKey("d", 1000)
-    ;     Sleep, 300
-    ;     holdKey("down", 500)
-    ; } else {
-    tpWithItem(3)
+    if(!autoCollection) {
+        tpWithItem(3)
+    } else {
+        holdKey("up", 300)
+    }
     Sleep, 300
     holdKey("up", 500)
     Sleep, 300
@@ -458,7 +448,7 @@ EventCycle:
     Sleep, 300
     holdKey("d", 1200)
     Sleep, 300
-    holdKey("down", 900)
+    holdKey("down", 700)
     Sleep, 300
     ; }
 
@@ -487,7 +477,7 @@ EventCycle:
 ; Sleep, 300
 ; holdKey("a", 800)
 ; Sleep, 300
-; holdKey("down", 500)
+; holdKey("down", 400)
 
 ; Loop, 2 {
 ;     Send, {WheelDown}
@@ -504,15 +494,13 @@ PassShopCycle:
 
     tooltipLog("Opening pass shop...")
     startUINav()
-    keyEncoder("LLUE")
-    startUINav()
-    startUINav()
+    keyEncoder("UUUUUULLLLLLDEUUURRRRRRRULE")
     ; no exit if it fails since this shouldn't fail often
     if(isShopOpen()) {
         tooltipLog("Shopping for pass items...")
-        keyEncoder("RRRRUD")
+        keyEncoder("DDD")
         repeatKey("Up", (passItems.Length() * 2) + 5)
-        keyEncoder("LLLLURRRRRDREDDD")
+        keyEncoder("RRRDDDD")
         goShopping(currentlyAllowedPassItems, passItems, smartBuying, 10, true)
         repeatKey("Up", (passItems.Length() * 2) + 5)
         keyEncoder("RRRRWE")

@@ -121,6 +121,7 @@ EventRarity(Seed) {
         rarityMap ["Chicken Feed"] := "Mythical"
         rarityMap ["Seer Vine"] := "Divine"
         rarityMap ["Poison Apple"] := "Prismatic"
+        rarityMap ["Blood Orange"] := "Prismatic"
 
     }
     return rarityMap.HasKey(Seed) ? rarityMap[Seed] : ""
