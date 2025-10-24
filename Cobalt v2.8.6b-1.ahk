@@ -384,7 +384,7 @@ AutoCollection:
         Return
     }
 
-    tooltipLog("Starting autocollection...")
+    tooltipLog("Starting auto-collection...")
     startUINav()
     keyEncoder("UULLLLURRRREW")
     startUINav()

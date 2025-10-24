@@ -117,6 +117,8 @@ EventRarity(Seed) {
         rarityMap := Object()
         rarityMap ["Bloodred Mushroom"] := "Uncommon"
         rarityMap ["Jack O Lantern"] := "Rare"
+        rarityMap ["Pumpkin"] := "Legendary"
+        rarityMap ["Candy Cornflower"] := "Legendary"
         rarityMap ["Ghoul Root"] := "Legendary"
         rarityMap ["Chicken Feed"] := "Mythical"
         rarityMap ["Seer Vine"] := "Divine"
