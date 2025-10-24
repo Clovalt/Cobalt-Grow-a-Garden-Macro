@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/items.ahk
 #Include, %A_ScriptDir%/modules/colors.ahk
 
-global version := "v2.8.6b-1"
+global version := "v2.8.6b-2"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
