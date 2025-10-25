@@ -28,7 +28,7 @@ acLUT.gear.Push({ name: "Pet Pouch", time: 30 })
 acLUT.gear.Push({ name: "Pack Bee", time: 240 })
 
 ; Edit this to change the seeds
-global seedItems := ["Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomato", "Corn", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry", "Romanesco", "Crimson Thorn", "Great Pumpking"]
+global seedItems := ["Carrot", "Strawberry", "Blueberry", "Tomato", "Corn", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry", "Romanesco", "Crimson Thorn", "Great Pumpking"]
 ; global t2SeedItems := ["Broccoli", "Potato", "Brussels Sprout", "Cocomango"]
 
 ; Edit this to change the gear
@@ -39,4 +39,6 @@ global passItems := ["Prime Crate", "Egg Yolk Mat", "Silver Fertilizer", "Prime 
 
 ; Edit this to change the eggs
 global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Jungle Egg", "Bug Egg"]
+
+global ungiftableItems := ["Trowel", "Pet Name Reroller", "Pet Lead"]
 ; global t2EggItems := ["Pet Name Reroller", "Pet Lead"]

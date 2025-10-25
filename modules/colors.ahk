@@ -47,6 +47,8 @@ GearRarity(gear) {
         rarityMap["Basic Sprinkler"] := "Rare"
         rarityMap["Advanced Sprinkler"] := "Legendary"
         rarityMap["Medium Toy"] := "Legendary"
+        rarityMap ["Pet Name Reroller"] := "Legendary"
+        rarityMap ["Pet Lead"] := "Legendary"
         rarityMap["Medium Treat"] := "Legendary"
         rarityMap["Godly Sprinkler"] := "Mythical"
         rarityMap["Magnifying Glass"] := "Mythical"
@@ -77,17 +79,6 @@ AutismIsMySuperpower(egg) {
 
     }
     return rarityMap.HasKey(egg) ? rarityMap[egg] : ""
-}
-
-t2EggRarity(Egg) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
-        rarityMap ["Pet Name Reroller"] := "Legendary"
-        rarityMap ["Pet Lead"] := "Legendary"
-
-    }
-    return rarityMap.HasKey(Egg) ? rarityMap[Egg] : ""
 }
 
 itemColor(rarity) {

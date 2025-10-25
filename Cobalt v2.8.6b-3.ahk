@@ -639,10 +639,9 @@ goShopping(arr, allArr, smartBuying, spamCount := 30, isEvent := false) {
 }
 
 buyAllAvailable(spamCount := 30, item := "", useLeft := true) {
-    repeatKey("Enter")
-    repeatKey("Down")
+    keyEncoder("EDWWWWUD")
     if(isThereStock()) {
-        if(item != "Trowel" && useLeft) {
+        if(!arrContains(ungiftableItems, item) && useLeft) {
             repeatKey("Left")
         }
         repeatKey("Enter", spamCount)
@@ -651,12 +650,10 @@ buyAllAvailable(spamCount := 30, item := "", useLeft := true) {
     repeatKey("Down")
 }
 
-; almost ready
 buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true, shouldCount := true) {
-    repeatKey("Enter")
-    repeatKey("Down")
+    keyEncoder("EDWWWWUD")
     if(isThereStock()) {
-        if(item != "Trowel" && useLeft) {
+        if(!arrContains(ungiftableItems, item) && useLeft) {
             repeatKey("Left")
         }
         count := 0
@@ -694,7 +691,6 @@ selectCraftableItem(shopObj, item) {
 }
 
 isThereStock() {
-    Sleep, 200
     return colorDetect(0x20b41c) || colorDetect(0x26EE26)
 }
 
