@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/items.ahk
 #Include, %A_ScriptDir%/modules/colors.ahk
 
-global version := "v2.8.6b-2"
+global version := "v2.8.6b-3"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -18,13 +18,11 @@ global allList := []
 allList.Push(seedItems*)
 allList.Push(gearItems*)
 allList.Push(eggItems*)
-allList.Push(t2EggItems*)
 allList.Push(eventItems*)
 
 global currentlyAllowedSeeds := []
 global currentlyAllowedGear := []
 global currentlyAllowedEggs := []
-global currentlyAllowedT2Eggs := []
 global currentlyAllowedEvent := []
 global currentlyAllowedPassItems := []
 
@@ -216,7 +214,7 @@ EggCycle:
         tpWithItem(2)
     }
 
-    if((currentlyAllowedEggs.Length() > 0 || currentlyAllowedT2Eggs.Length() > 0) && canDoEgg) {
+    if((currentlyAllowedEggs.Length() > 0) && canDoEgg) {
         canDoEgg := false
         tooltipLog("Going to egg shop...")
         recalibrateCameraDistance()
@@ -243,29 +241,8 @@ EggCycle:
             startUINav()
             startUINav()
             keyEncoder("UULLLLUUURRRRRDDDWEWWWWUUUUUURRDDWEWEWWW")
-            ; reset back to t1 shop if t2 eggs are selected (assume the worse)
-            if(currentlyAllowedT2Eggs.Length() > 0) {
-                keyEncoder("WRUWEW")
-                startUINav()
-                startUINav()
-                keyEncoder("UULLLLUUURRRRRDDWW")
-            }
             ; buy eggs
             goShopping(currentlyAllowedEggs, eggItems, smartBuying, 5)
-
-            ; t2 time
-            if(currentlyAllowedT2Eggs.Length() > 0) {
-                repeatKey("Up", eggItems.Length() * 2 + 5)
-                startUINav()
-                startUINav()
-                keyEncoder("RRRRUUUWWEWWEWWRWWEWW") ; thankfully this seems to close if you dont have it unlocked
-                startUINav()
-                startUINav()
-                keyEncoder("RRRR")
-                repeatKey("Up", eggItems.Length() * 2 + 5)
-                keyEncoder("RRDDWWEWWEWW")
-                goShopping(currentlyAllowedT2Eggs, t2EggItems, smartBuying, 15, true)
-            }
 
             ; close
             repeatKey("Up", eggItems.Length() * 2 + 5)
@@ -1021,7 +998,7 @@ ShowGui:
     groupBoxH := 320
 
     Gui, Font, s10 bold
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|T2 Items|Event|Pass|Ping List|Settings|Credits|Donators
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Event|Pass|Ping List|Settings|Credits|Donators
 
     ; seeds
     Gui, Font, s10 c1C96EF
@@ -1117,27 +1094,6 @@ ShowGui:
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vplantACCheckboxes%A_Index% Checked%isChecked%, % plant
     }
 
-    Gui, Tab, T2 Items
-    Gui, Font, s10
-    Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
-
-    Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllT2Items gToggleAllT2Items cFFFF28, Select All T2 Items
-
-    paddingY := groupBoxY + 50
-    paddingX := groupBoxX + 25
-    Loop % t2EggItems.Length() {
-        row := Mod(A_Index - 1, Ceil(t2EggItems.Length() / cols))
-        col := 0
-        x := paddingX + (itemW * col)
-        y := paddingY + (itemH * row)
-        egg := t2EggItems[A_Index]
-        isChecked := arrContains(currentlyAllowedT2Eggs, egg) ? 1 : 0
-        rarity := t2EggRarity(Egg)
-        color := itemColor(rarity)
-        Gui, Font, c%color% bold
-        Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateT2ItemsState vt2EggCheckboxes%A_Index% Checked%isChecked%, % egg
-        Gui, Font, cWhite bold
-    }
     Gui, Tab, Event
     Gui, Font, s10
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
@@ -1347,7 +1303,6 @@ loadValues() {
     IniRead, currentlyAllowedSeedsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
     IniRead, currentlyAllowedGearStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
     IniRead, currentlyAllowedEggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
-    IniRead, currentlyAllowedT2EggsStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
     IniRead, currentlyAllowedEventStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
     IniRead, currentlyAllowedPassStr, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedPassItems
     IniRead, autocraftingQueueStr, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
@@ -1374,11 +1329,6 @@ loadValues() {
         currentlyAllowedSeeds := StrSplit(currentlyAllowedSeedsStr, ", ")
     else
         currentlyAllowedSeeds := []
-
-    if (currentlyAllowedT2EggsStr != "" && currentlyAllowedT2EggsStr != "ERROR")
-        currentlyAllowedT2Eggs := StrSplit(currentlyAllowedT2EggsStr, ", ")
-    else
-        currentlyAllowedT2Eggs := []
 
     ; TODO: re-enable these when gear and egg GUI are implemented
     if (currentlyAllowedGearStr != "" && currentlyAllowedGearStr != "ERROR")
@@ -1421,7 +1371,6 @@ saveValues() {
     currentlyAllowedSeedsStr := arrayToString(currentlyAllowedSeeds)
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
     currentlyAllowedEggsStr := arrayToString(currentlyAllowedEggs)
-    currentlyAllowedT2EggsStr := arrayToString(currentlyAllowedT2Eggs)
     pingListStr := arrayToString(pingList)
     autocraftingQueueStr := arrayToString(autocraftingQueue)
     currentlyAllowedEventStr := arrayToString(currentlyAllowedEvent)
@@ -1430,7 +1379,6 @@ saveValues() {
     IniWrite, %currentlyAllowedSeedsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedSeeds
     IniWrite, %currentlyAllowedGearStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedGear
     IniWrite, %currentlyAllowedEggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEggs
-    IniWrite, %currentlyAllowedT2EggsStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedT2Eggs
     IniWrite, %currentlyAllowedEventStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedEvent
     IniWrite, %currentlyAllowedPassStr%, %A_ScriptDir%/config.ini, PersistentData, currentlyAllowedPassItems
     IniWrite, %autocraftingQueueStr%, %A_ScriptDir%/config.ini, PersistentData, autocraftingQueue
@@ -1502,16 +1450,6 @@ return
 
 UpdateEggState:
     updateCheckState(currentlyAllowedEggs, eggItems, "eggCheckboxes")
-return
-
-ToggleAllT2Items:
-    toggleAllState("CheckAllT2Items", "t2EggCheckboxes", t2EggItems)
-    toggleAllState("CheckAllT2Items", "t2SeedCheckboxes", t2SeedItems)
-    updateCheckState(currentlyAllowedT2Eggs, t2EggItems, "t2EggCheckboxes")
-return
-
-UpdateT2ItemsState:
-    updateCheckState(currentlyAllowedT2Eggs, t2EggItems, "t2EggCheckboxes")
 return
 
 UpdateAutoCraftingState:

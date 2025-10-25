@@ -32,11 +32,11 @@ global seedItems := ["Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomat
 ; global t2SeedItems := ["Broccoli", "Potato", "Brussels Sprout", "Cocomango"]
 
 ; Edit this to change the gear
-global gearItems := ["Watering Can", "Trading Ticket", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Medium Toy", "Medium Treat", "Godly Sprinkler", "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Cleansing Pet Shard", "Favorite Tool", "Harvest Tool", "Friendship Pot", "Grandmast Sprinkler", "Levelup Lollipop"]
+global gearItems := ["Watering Can", "Trading Ticket", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Medium Toy", "Pet Name Reroller", "Pet Lead", "Medium Treat", "Godly Sprinkler", "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Cleansing Pet Shard", "Favorite Tool", "Harvest Tool", "Friendship Pot", "Grandmast Sprinkler", "Levelup Lollipop"]
 
 global eventItems := ["Bloodred Mushroom", "Jack O Lantern", "Pumpkin", "Candy Cornflower", "Ghoul Root", "Chicken Feed", "Seer Vine", "Poison Apple", "Blood Orange"]
 global passItems := ["Prime Crate", "Egg Yolk Mat", "Silver Fertilizer", "Prime Seed Pack", "Levelup Lollipop", "Grow All", "Naval Wort"]
 
 ; Edit this to change the eggs
 global eggItems := ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Jungle Egg", "Bug Egg"]
-global t2EggItems := ["Pet Name Reroller", "Pet Lead"]
+; global t2EggItems := ["Pet Name Reroller", "Pet Lead"]
