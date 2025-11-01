@@ -29,7 +29,7 @@ SeedRarity(seed) {
         rarityMap["Elder Strawberry"] := "Prismatic"
         rarityMap["Romanesco"] := "Prismatic"
         rarityMap["Crimson Thorn"] := "Transcendent"
-        rarityMap["Great Pumpking"] := "Transcendent"
+        rarityMap["Trinity Fruit"] := "Transcendent"
 
     }
 
