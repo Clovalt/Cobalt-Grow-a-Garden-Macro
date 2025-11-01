@@ -5,7 +5,7 @@ SeedRarity(seed) {
         rarityMap["Carrot"] := "Common"
         rarityMap["Strawberry"] := "Common"
         rarityMap["Blueberry"] := "Uncommon"
-        rarityMap["Orange Tulip"] := "Uncommon"
+        rarityMap["Buttercup"] := "Uncommon"
         rarityMap["Tomato"] := "Rare"
         rarityMap["Corn"] := "Rare"
         rarityMap["Daffodil"] := "Rare"
@@ -29,7 +29,7 @@ SeedRarity(seed) {
         rarityMap["Elder Strawberry"] := "Prismatic"
         rarityMap["Romanesco"] := "Prismatic"
         rarityMap["Crimson Thorn"] := "Transcendent"
-        rarityMap["Great Pumpking"] := "Transcendent"
+        rarityMap["Trinity Fruit"] := "Transcendent"
 
     }
 

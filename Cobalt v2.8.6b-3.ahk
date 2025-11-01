@@ -194,10 +194,10 @@ GearCycle:
         startUINav()
         tooltipLog("Shopping for gear...")
         keyEncoder("RRRR")
-        repeatKey("Up", gearItems.Length() + 5)
+        repeatKey("Up", gearItems.Length() * 2 + 5)
         keyEncoder("RRDRD")
         goShopping(currentlyAllowedGear, gearItems, smartBuying, 20)
-        repeatKey("Up", gearItems.Length() + 5)
+        repeatKey("Up", gearItems.Length() * 2 + 5)
         keyEncoder("RRDRLRWE")
         sendDiscordQueue("Gear Shop")
         startUINav()
@@ -230,7 +230,7 @@ EggCycle:
         Sleep, 500
 
         ; click the open egg shop dialog option
-        SafeClickRelative(0.75, 0.2)
+        SafeClickRelative(0.75, 0.3)
         Sleep, 5000
 
         if(isShopOpen()) {
@@ -275,7 +275,7 @@ Autocraft:
 
     ; if the item is still being crafted, wait for the next cycle
     if(currentACItem["time"] > 0 && currentACItem.Count() > 0) {
-        Gosub, AutoCollection
+        Gosub, PassShopCycle
         Return
     }
 
@@ -353,104 +353,104 @@ Autocraft:
         startUINav()
     }
 
-AutoCollection:
-    exitIfWindowDies()
+; AutoCollection:
+;     exitIfWindowDies()
 
-    if(!autoCollection) {
-        Gosub, EventCycle
-        Return
-    }
+;     if(!autoCollection) {
+;         Gosub, EventCycle
+;         Return
+;     }
 
-    tooltipLog("Starting auto-collection...")
-    startUINav()
-    keyEncoder("UULLLLURRRREW")
-    startUINav()
-    recalibrateCameraDistance()
-    Sleep, 500
-    Loop, 5 {
-        Send, {WheelDown}
-        Sleep, 10
-    }
+;     tooltipLog("Starting auto-collection...")
+;     startUINav()
+;     keyEncoder("UULLLLURRRREW")
+;     startUINav()
+;     recalibrateCameraDistance()
+;     Sleep, 500
+;     Loop, 5 {
+;         Send, {WheelDown}
+;         Sleep, 10
+;     }
 
-    Loop, 10 {
-        holdKey("down", 500) ; walk to autocollect area
-        ; start collecting
-        holdKey("e", 3000)
-    }
-    recalibrateCameraDistance()
-    Sleep, 500
+;     Loop, 10 {
+;         holdKey("down", 500) ; walk to autocollect area
+;         ; start collecting
+;         holdKey("e", 3000)
+;     }
+;     recalibrateCameraDistance()
+;     Sleep, 500
 
-    ; event specific stuff
-    tpWithItem(3)
-    Sleep, 300
-    holdKey("down", 300)
-    Sleep, 300
-    Loop, 2 {
-        Send, {WheelDown}
-        Sleep, 10
-    }
-    Sleep, 300
-    repeatKey("e")
-    Sleep, 1000
-    Loop, 7 {
-        Send, {WheelUp}
-        Sleep, 10
-    }
-    Sleep, 1000
-    SafeClickRelative(0.9, 0.70)
-    Sleep, 3000
+;     ; event specific stuff
+;     tpWithItem(3)
+;     Sleep, 300
+;     holdKey("down", 300)
+;     Sleep, 300
+;     Loop, 2 {
+;         Send, {WheelDown}
+;         Sleep, 10
+;     }
+;     Sleep, 300
+;     repeatKey("e")
+;     Sleep, 1000
+;     Loop, 7 {
+;         Send, {WheelUp}
+;         Sleep, 10
+;     }
+;     Sleep, 1000
+;     SafeClickRelative(0.9, 0.70)
+;     Sleep, 3000
 
-EventCycle:
-    exitIfWindowDies()
+; EventCycle:
+;     exitIfWindowDies()
 
-    ; skip seeds if none are selected
-    if (currentlyAllowedEvent.Length() = 0 || !canDoEvent) {
-        Gosub, PassShopCycle
-        Return
-    }
+;     ; skip seeds if none are selected
+;     if (currentlyAllowedEvent.Length() = 0 || !canDoEvent) {
+;         Gosub, PassShopCycle
+;         Return
+;     }
 
-    ; open shop
-    recalibrateCameraDistance()
-    if(!autoCollection) {
-        tpWithItem(3)
-    } else {
-        holdKey("up", 300)
-    }
-    Sleep, 300
-    holdKey("up", 500)
-    Sleep, 300
-    holdKey("d", 1800)
-    Sleep, 300
-    holdKey("down", 500)
-    Sleep, 300
-    holdKey("d", 1200)
-    Sleep, 300
-    holdKey("down", 700)
-    Sleep, 300
-    ; }
+;     ; open shop
+;     recalibrateCameraDistance()
+;     if(!autoCollection) {
+;         tpWithItem(3)
+;     } else {
+;         holdKey("up", 300)
+;     }
+;     Sleep, 300
+;     holdKey("up", 500)
+;     Sleep, 300
+;     holdKey("d", 1800)
+;     Sleep, 300
+;     holdKey("down", 500)
+;     Sleep, 300
+;     holdKey("d", 1200)
+;     Sleep, 300
+;     holdKey("down", 700)
+;     Sleep, 300
+;     ; }
 
-    Loop, 2 {
-        Send, {WheelDown}
-        Sleep, 10
-    }
-    Sleep, 300
+;     Loop, 2 {
+;         Send, {WheelDown}
+;         Sleep, 10
+;     }
+;     Sleep, 300
 
-    repeatKey("e")
-    Sleep, 1000
-    startUINav()
-    Sleep, 1000
-    if(isShopOpen()) {
-        keyEncoder("RRRR")
-        repeatKey("Up", eventItems.Length() + 5)
-        keyEncoder("RRD")
-        tooltipLog("Shopping for event seeds...")
-        goShopping(currentlyAllowedEvent, eventItems, smartBuying, 10, true)
-        repeatKey("Up", eventItems.Length() + 5)
-        keyEncoder("RRRRLUUWEW")
-        sendDiscordQueue("Event Shop")
-        startUINav()
-    }
-    recalibrateCameraDistance()
+;     repeatKey("e")
+;     Sleep, 1000
+;     startUINav()
+;     Sleep, 1000
+;     if(isShopOpen()) {
+;         keyEncoder("RRRR")
+;         repeatKey("Up", eventItems.Length() + 5)
+;         keyEncoder("RRD")
+;         tooltipLog("Shopping for event seeds...")
+;         goShopping(currentlyAllowedEvent, eventItems, smartBuying, 10, true)
+;         repeatKey("Up", eventItems.Length() + 5)
+;         keyEncoder("RRRRLUUWEW")
+;         sendDiscordQueue("Event Shop")
+;         startUINav()
+;     }
+;     recalibrateCameraDistance()
 ; Sleep, 300
 ; holdKey("a", 800)
 ; Sleep, 300
@@ -639,7 +639,7 @@ goShopping(arr, allArr, smartBuying, spamCount := 30, isEvent := false) {
 }
 
 buyAllAvailable(spamCount := 30, item := "", useLeft := true) {
-    keyEncoder("EDWWWWUD")
+    keyEncoder("EWDW")
     if(isThereStock()) {
         if(!arrContains(ungiftableItems, item) && useLeft) {
             repeatKey("Left")
@@ -651,7 +651,7 @@ buyAllAvailable(spamCount := 30, item := "", useLeft := true) {
 }
 
 buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true, shouldCount := true) {
-    keyEncoder("EDWWWWUD")
+    keyEncoder("EWDW")
     if(isThereStock()) {
         if(!arrContains(ungiftableItems, item) && useLeft) {
             repeatKey("Left")
@@ -691,7 +691,7 @@ selectCraftableItem(shopObj, item) {
 }
 
 isThereStock() {
-    return colorDetect(0x20b41c) || colorDetect(0x26EE26)
+    return colorDetect(0x20b41c) || colorDetect(0x26EE26) || colorDetect(0x2596B3)
 }
 
 isThereNoStock() {
@@ -702,9 +702,9 @@ isThereNoStock() {
 isShopOpen() {
     Sleep, %sleepPerf%
 
-    ; 1. every other shop bg OR event and egg bg
+    ; 1. every other shop bg OR event and egg bg OR alternate main shop bg (for some reason it changes on some servers)
     ; 2. check no large block of disconnect pixels exist
-    return (colorDetect(0x50240c) || colorDetect(0x360805)) && !disconnectColorCheck()
+    return (colorDetect(0x50240c) || colorDetect(0x360805) || colorDetect(0x48210e)) && !disconnectColorCheck()
 }
 
 colorDetect(c, v := 5) {
@@ -994,7 +994,7 @@ ShowGui:
     groupBoxH := 320
 
     Gui, Font, s10 bold
-    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Event|Pass|Ping List|Settings|Credits|Donators
+    Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Pass|Ping List|Settings|Credits|Donators
 
     ; seeds
     Gui, Font, s10 c1C96EF
@@ -1090,28 +1090,28 @@ ShowGui:
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vplantACCheckboxes%A_Index% Checked%isChecked%, % plant
     }
 
-    Gui, Tab, Event
-    Gui, Font, s10
-    Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
+    ; Gui, Tab, Event
+    ; Gui, Font, s10
+    ; Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
 
-    Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllEventItems gToggleAllEvent cFFFF28, Select All Evo Seeds
+    ; Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllEventItems gToggleAllEvent cFFFF28, Select All Evo Seeds
 
-    paddingY := groupBoxY + 50
-    paddingX := groupBoxX + 25
-    cols := 1
-    Loop % eventItems.Length() {
-        row := Mod(A_Index - 1, Ceil(eventItems.Length() / cols))
-        col := Floor((A_Index - 1) / Ceil(eventItems.Length() / cols))
-        x := paddingX + (itemW * col)
-        y := paddingY + (itemH * row)
-        item := eventItems[A_Index]
-        isChecked := arrContains(currentlyAllowedEvent, item) ? 1 : 0
-        rarity := EventRarity(item)
-        color := itemColor(rarity)
-        Gui, Font, c%color% bold
-        Gui, Add, Checkbox, x%x% y%y% w200 h23 gUpdateEventState veventCheckboxes%A_Index% Checked%isChecked%, % item
-        Gui, Font, cFFFFFF bold
-    }
+    ; paddingY := groupBoxY + 50
+    ; paddingX := groupBoxX + 25
+    ; cols := 1
+    ; Loop % eventItems.Length() {
+    ;     row := Mod(A_Index - 1, Ceil(eventItems.Length() / cols))
+    ;     col := Floor((A_Index - 1) / Ceil(eventItems.Length() / cols))
+    ;     x := paddingX + (itemW * col)
+    ;     y := paddingY + (itemH * row)
+    ;     item := eventItems[A_Index]
+    ;     isChecked := arrContains(currentlyAllowedEvent, item) ? 1 : 0
+    ;     rarity := EventRarity(item)
+    ;     color := itemColor(rarity)
+    ;     Gui, Font, c%color% bold
+    ;     Gui, Add, Checkbox, x%x% y%y% w200 h23 gUpdateEventState veventCheckboxes%A_Index% Checked%isChecked%, % item
+    ;     Gui, Font, cFFFFFF bold
+    ; }
 
     Gui, Tab, Pass
     Gui, Font, s10
