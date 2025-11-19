@@ -6,7 +6,6 @@ global version := "v2.8.7"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
-global invNavKeybind := "``"
 
 ; Edit this to change what you want to be pinged for
 global pingList := ["Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud","Giant Pinecone","Elder Strawberry", "Master Sprinkler", "Grandmaster Sprinkler", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Mythical Egg", "Paradise Egg", "Bug Egg"]
@@ -93,6 +92,30 @@ Alignment:
     Sleep, 100
     repeatKey("esc")
     Sleep, 500
+    
+    ; fix event notify bug
+    startXPercent := 90
+    startYPercent := 5
+    endXPercent := 100
+    endYPercent := 7
+
+    CoordMode, Pixel, Screen
+
+    x1 := Round((startXPercent / 100) * A_ScreenWidth)
+    y1 := Round((startYPercent / 100) * A_ScreenHeight)
+    x2 := Round((endXPercent / 100) * A_ScreenWidth)
+    y2 := Round((endYPercent / 100) * A_ScreenHeight)
+
+    PixelSearch, px, py, x1, y1, x2, y2, 0x121315, 5, Fast RGB
+    if(ErrorLevel = 0) {
+        startUINav()
+        keyEncoder("UUUULLLLURRREWWWWWDWWDDWWWWWWE")
+        startUINav()
+    } else if (ErrorLevel = 2) {
+        tooltipLog("FATAL ERROR: Failed to start colour detection")
+        sendDiscordMessage("FATAL ERROR: Failed to start colour detection", 0)
+        Gosub, Close
+    }
 
     ; do some mouse moving shenanigans to align the camera properly
     CoordMode, Mouse, Screen
@@ -784,11 +807,6 @@ startUINav() {
     Sleep, %sleepPerf%
 }
 
-startInvAction() {
-    SendInput, {%invNavKeybind%}
-    Sleep, %sleepPerf%
-}
-
 tooltipLog(message, duration := 3000) {
     ToolTip, %message%
     SetTimer, HideTooltip, %duration%
@@ -1219,6 +1237,7 @@ ShowGui:
 return
 
 ; thank you gemini pro for showing me theres efficient ways to do this
+; still sucks tho
 AddToPingList:
 
     if (A_GuiEvent == "I" && ErrorLevel = 8)
