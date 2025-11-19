@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/items.ahk
 #Include, %A_ScriptDir%/modules/colors.ahk
 
-global version := "v2.8.7"
+global version := "v2.8.8"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -184,15 +184,15 @@ SeedCycle:
     Sleep, 3000
     if(isShopOpen()) {
         ; lets go buy some seeds
-        keyEncoder("RRRR")
+        keyEncoder("LLLUUULLLUUULURRRD")
         repeatKey("Up", seedItems.Length() + 5)
-        keyEncoder("RRDRD")
+        keyEncoder("D")
         tooltipLog("Shopping for seeds...")
         goShopping(currentlyAllowedSeeds, seedItems, smartBuying)
 
         ; close and report
         repeatKey("Up", seedItems.Length() + 5)
-        keyEncoder("RRDRLRWE")
+        keyEncoder("RRWWE")
         sendDiscordQueue("Seed Shop")
         startUINav()
     } else {
@@ -216,12 +216,12 @@ GearCycle:
     if(isShopOpen()) {
         startUINav()
         tooltipLog("Shopping for gear...")
-        keyEncoder("RRRR")
+        keyEncoder("LLLUUULLLUUULURRRD")
         repeatKey("Up", gearItems.Length() * 2 + 5)
-        keyEncoder("RRDRD")
+        keyEncoder("RD")
         goShopping(currentlyAllowedGear, gearItems, smartBuying, 20)
         repeatKey("Up", gearItems.Length() * 2 + 5)
-        keyEncoder("RRDRLRWE")
+        keyEncoder("RRWWE")
         sendDiscordQueue("Gear Shop")
         startUINav()
         Sleep, %sleepPerf%
@@ -259,19 +259,15 @@ EggCycle:
         if(isShopOpen()) {
             startUINav()
             tooltipLog("Shopping for eggs...")
-            keyEncoder("RRRR")
+            keyEncoder("LLLUUULLLUUULURRRD")
             repeatKey("Up", eggItems.Length() * 2 + 5)
-            startUINav()
-            startUINav()
-            keyEncoder("UULLLLUUURRRRRDDDWEWWWWUUUUUURRDDWEWEWWW")
+            keyEncoder("DWWWWEWWWWE")
             ; buy eggs
             goShopping(currentlyAllowedEggs, eggItems, smartBuying, 5)
 
             ; close
             repeatKey("Up", eggItems.Length() * 2 + 5)
-            startUINav()
-            startUINav()
-            keyEncoder("UUULLLLLLLLUUUUUUURRRRDRLRE")
+            keyEncoder("RRWWE")
             sendDiscordQueue("Egg Shop")
             Sleep, 500
             startUINav()
@@ -350,7 +346,7 @@ Autocraft:
         ; 1. clear any incomplete crafting, 2. claim crafting that completed, and 3. open crafting menu
         ; the double e works fine since pressing it twice just reopens the shop anyways
         SendInput, c
-        Sleep, 3000
+        Sleep, 300
         Loop, 5 {
             Send, {WheelUp}
             Sleep, 10
@@ -494,13 +490,13 @@ PassShopCycle:
 
     tooltipLog("Opening pass shop...")
     startUINav()
-    keyEncoder("UUUUUULLLLLLDEUUURRRRRRRULE")
+    keyEncoder("UUUUUULLLLLLDEUUURRRRREWW")
     ; no exit if it fails since this shouldn't fail often
     if(isShopOpen()) {
         tooltipLog("Shopping for pass items...")
         keyEncoder("DDD")
         repeatKey("Up", (passItems.Length() * 2) + 5)
-        keyEncoder("RRRDDDD")
+        keyEncoder("RRRDDD")
         goShopping(currentlyAllowedPassItems, passItems, smartBuying, 10, true)
         repeatKey("Up", (passItems.Length() * 2) + 5)
         keyEncoder("RRRRWE")
@@ -704,9 +700,9 @@ buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true, shouldCount :
 
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
-    keyEncoder("RRRR")
+    keyEncoder("LLLUUULLLUUULURRRD")
     repeatKey("up", shopObj.Length() + 10)
-    keyEncoder("LLLLURRRRRDDWWEWWEWW")
+    keyEncoder("DWEWWWEWWW")
     count := findScuffedIndex(shopObj, item)
     repeatKey("down", count - 1)
     keyEncoder("WWWEWDWE")
