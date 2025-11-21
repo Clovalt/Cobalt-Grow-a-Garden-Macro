@@ -1,7 +1,9 @@
-SeedRarity(seed) {
+getRarity(item) {
     static rarityMap
     if (!IsObject(rarityMap)) {
         rarityMap := Object()
+        
+        ; seeds
         rarityMap["Carrot"] := "Common"
         rarityMap["Strawberry"] := "Common"
         rarityMap["Blueberry"] := "Uncommon"
@@ -31,16 +33,8 @@ SeedRarity(seed) {
         rarityMap["Romanesco"] := "Prismatic"
         rarityMap["Crimson Thorn"] := "Transcendent"
         rarityMap["Zebrazinkle"] := "Transcendent"
-
-    }
-
-    return rarityMap.HasKey(seed) ? rarityMap[seed] : ""
-}
-
-GearRarity(gear) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
+        
+        ; gear 
         rarityMap["Watering Can"] := "Common"
         rarityMap["Trading Ticket"] := "Uncommon"
         rarityMap["Trowel"] := "Uncommon"
@@ -48,8 +42,8 @@ GearRarity(gear) {
         rarityMap["Basic Sprinkler"] := "Rare"
         rarityMap["Advanced Sprinkler"] := "Legendary"
         rarityMap["Medium Toy"] := "Legendary"
-        rarityMap ["Pet Name Reroller"] := "Legendary"
-        rarityMap ["Pet Lead"] := "Legendary"
+        rarityMap["Pet Name Reroller"] := "Legendary"
+        rarityMap["Pet Lead"] := "Legendary"
         rarityMap["Medium Treat"] := "Legendary"
         rarityMap["Godly Sprinkler"] := "Mythical"
         rarityMap["Magnifying Glass"] := "Mythical"
@@ -61,28 +55,30 @@ GearRarity(gear) {
         rarityMap["Friendship Pot"] := "Divine"
         rarityMap["Grandmast Sprinkler"] := "Prismatic"
         rarityMap["Levelup Lollipop"] := "Prismatic"
-    }
-    return rarityMap.HasKey(gear) ? rarityMap[gear] : ""
-
-}
-
-AutismIsMySuperpower(egg) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
+    
+        ; eggs
         rarityMap["Common Egg"] := "Common"
         rarityMap["Uncommon Egg"] := "Unc"
         rarityMap["Rare Egg"] := "Rare"
         rarityMap["Legendary Egg"] := "Legg"
         rarityMap["Mythical Egg"] := "MyEgg!"
-        rarityMap ["Jungle Egg"] := "Jung"
+        rarityMap["Jungle Egg"] := "Jung"
         rarityMap["Bug Egg"] := "Buggy"
 	    rarityMap["Gem Egg"] := "Gem"
+    
+        ; pass items
+        rarityMap["Zenith Crate"] := "Common"
+        rarityMap["Mossy Rock"] := "Mythical"
+        rarityMap["Silver Fertilizer"] := "Mythical"
+        rarityMap["Zenith Seed Pack"] := "Divine"
+        rarityMap["Levelup Lollipop"] := "Prismatic"
+        rarityMap["Grow All"] := "Prismatic"
+        rarityMap["Wyrmvine"] := "Prismatic"
     }
-    return rarityMap.HasKey(egg) ? rarityMap[egg] : ""
+    return rarityMap.HasKey(Item) ? rarityMap[Item] : ""
 }
 
-itemColor(rarity) {
+getColor(rarity) {
     static colorMap
     if (!IsObject(colorMap)) {
         colorMap := Object()
@@ -104,35 +100,3 @@ itemColor(rarity) {
     return colorMap.HasKey(rarity) ? colorMap[rarity] : "c000000"
 }
 
-EventRarity(Seed) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
-        rarityMap ["Bloodred Mushroom"] := "Uncommon"
-        rarityMap ["Jack O Lantern"] := "Rare"
-        rarityMap ["Pumpkin"] := "Legendary"
-        rarityMap ["Candy Cornflower"] := "Legendary"
-        rarityMap ["Ghoul Root"] := "Legendary"
-        rarityMap ["Chicken Feed"] := "Mythical"
-        rarityMap ["Seer Vine"] := "Divine"
-        rarityMap ["Poison Apple"] := "Prismatic"
-        rarityMap ["Blood Orange"] := "Prismatic"
-
-    }
-    return rarityMap.HasKey(Seed) ? rarityMap[Seed] : ""
-}
-
-PassRarity(Item) {
-    static rarityMap
-    if (!IsObject(rarityMap)) {
-        rarityMap := Object()
-        rarityMap ["Zenith Crate"] := "Common"
-        rarityMap ["Mossy Rock"] := "Mythical"
-        rarityMap ["Silver Fertilizer"] := "Mythical"
-        rarityMap ["Zenith Seed Pack"] := "Divine"
-        rarityMap ["Levelup Lollipop"] := "Prismatic"
-        rarityMap ["Grow All"] := "Prismatic"
-        rarityMap ["Wyrmvine"] := "Prismatic"
-    }
-    return rarityMap.HasKey(Item) ? rarityMap[Item] : ""
-}

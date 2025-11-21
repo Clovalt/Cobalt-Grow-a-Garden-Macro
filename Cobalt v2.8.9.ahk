@@ -2,7 +2,7 @@
 #Include, %A_ScriptDir%/modules/items.ahk
 #Include, %A_ScriptDir%/modules/colors.ahk
 
-global version := "v2.8.8"
+global version := "v2.8.9"
 
 ; -------- Configurable Variables --------
 global uiNavKeybind := "\"
@@ -33,6 +33,7 @@ global adminAbuse := false
 global smartBuying := false
 global fastSmartBuy := false
 global autoCollection := false
+global dailyDeals := false
 
 global finished := true
 global cycleCount := 0
@@ -41,7 +42,7 @@ global canDoEvent := true
 
 global started := 0
 global messageQueue := []
-global sleepPerf := 200
+global sleepPerf := 50
 global crashCounter := 0
 
 global perfSetting := "Default"
@@ -87,34 +88,17 @@ Alignment:
     repeatKey("esc")
     Sleep, 500
     repeatKey("tab")
-    Sleep, 100
+    Sleep, %sleepPerf%
     keyEncoder("UUUUUUUUUUURR")
-    Sleep, 100
+    Sleep, %sleepPerf%
     repeatKey("esc")
     Sleep, 500
-    
+
     ; fix event notify bug
-    startXPercent := 90
-    startYPercent := 5
-    endXPercent := 100
-    endYPercent := 7
-
-    CoordMode, Pixel, Screen
-
-    x1 := Round((startXPercent / 100) * A_ScreenWidth)
-    y1 := Round((startYPercent / 100) * A_ScreenHeight)
-    x2 := Round((endXPercent / 100) * A_ScreenWidth)
-    y2 := Round((endYPercent / 100) * A_ScreenHeight)
-
-    PixelSearch, px, py, x1, y1, x2, y2, 0x121315, 5, Fast RGB
-    if(ErrorLevel = 0) {
-        startUINav()
+    if(screenLook(0x121315, 5, 90, 3, 100, 5)) {
+        tooltipLog("Fixing event notify...")
         keyEncoder("UUUULLLLURRREWWWWWDWWDDWWWWWWE")
         startUINav()
-    } else if (ErrorLevel = 2) {
-        tooltipLog("FATAL ERROR: Failed to start colour detection")
-        sendDiscordMessage("FATAL ERROR: Failed to start colour detection", 0)
-        Gosub, Close
     }
 
     ; do some mouse moving shenanigans to align the camera properly
@@ -122,10 +106,9 @@ Alignment:
 
     Sleep, %sleepPerf%
     Click, Right, Down
-    Sleep, 100
-    SafeMoveRelative(0.5, 0.5)
-    Sleep, 100
-
+    Sleep, %sleepPerf%
+    SafeMouseRelative(0.5, 0.5)
+    Sleep, %sleepPerf%
     MouseGetPos, xpos, ypos
 
     if (ypos >= A_ScreenHeight * 0.90) {
@@ -135,7 +118,7 @@ Alignment:
     }
 
     MouseMove, 0, %moveDistance%, R
-    Sleep, 100
+    Sleep, %sleepPerf%
 
     Click, Right, Up
     Sleep, %sleepPerf%
@@ -170,7 +153,7 @@ SeedCycle:
     exitIfWindowDies()
 
     ; skip seeds if none are selected
-    if (currentlyAllowedSeeds.Length() = 0) {
+    if (!dailyDeals && currentlyAllowedSeeds.Length() = 0) {
         Gosub, GearCycle
         Return
     }
@@ -183,16 +166,37 @@ SeedCycle:
     startUINav()
     Sleep, 3000
     if(isShopOpen()) {
-        ; lets go buy some seeds
-        keyEncoder("LLLUUULLLUUULURRRD")
+        if(dailyDeals && cycleCount = 0) {
+            keyEncoder("RRRRUUUUUUUUUUUURRRRUWWEWW")
+            startUINav()
+            startUINav()
+        }
+
+        keyEncoder("RRRR")
         repeatKey("Up", seedItems.Length() + 5)
-        keyEncoder("D")
+        keyEncoder("RRDDD")
         tooltipLog("Shopping for seeds...")
         goShopping(currentlyAllowedSeeds, seedItems, smartBuying)
-
+        
         ; close and report
         repeatKey("Up", seedItems.Length() + 5)
-        keyEncoder("RRWWE")
+        
+        if(dailyDeals && cycleCount = 0) {
+            keyEncoder("RRDDDRWWEWW")
+            startUINav()
+            startUINav()
+            keyEncoder("RRRRUUUUUUURRDD")
+            repeatKey("Enter", 30)
+            keyEncoder("D")
+            repeatKey("Enter", 30)
+            keyEncoder("DLLLLU")
+            repeatKey("Enter", 30)
+            keyEncoder("DLLLLU")
+            repeatKey("Enter", 30)
+            keyEncoder("UUUULLLLLURRRRRDWWEWW")
+        }
+
+        keyEncoder("RRDRLRWE")
         sendDiscordQueue("Seed Shop")
         startUINav()
     } else {
@@ -216,12 +220,12 @@ GearCycle:
     if(isShopOpen()) {
         startUINav()
         tooltipLog("Shopping for gear...")
-        keyEncoder("LLLUUULLLUUULURRRD")
+        keyEncoder("RRRR")
         repeatKey("Up", gearItems.Length() * 2 + 5)
-        keyEncoder("RD")
+        keyEncoder("RRDRD")
         goShopping(currentlyAllowedGear, gearItems, smartBuying, 20)
         repeatKey("Up", gearItems.Length() * 2 + 5)
-        keyEncoder("RRWWE")
+        keyEncoder("RRDRLRWE")
         sendDiscordQueue("Gear Shop")
         startUINav()
         Sleep, %sleepPerf%
@@ -250,24 +254,28 @@ EggCycle:
             Send, {WheelUp}
             Sleep, 10
         }
-        Sleep, 500
+        Sleep, 300
 
         ; click the open egg shop dialog option
-        SafeClickRelative(0.75, 0.3)
+        SafeMouseRelative(0.75, 0.3, true)
         Sleep, 5000
 
         if(isShopOpen()) {
             startUINav()
             tooltipLog("Shopping for eggs...")
-            keyEncoder("LLLUUULLLUUULURRRD")
+            keyEncoder("RRRR")
             repeatKey("Up", eggItems.Length() * 2 + 5)
-            keyEncoder("DWWWWEWWWWE")
+            startUINav()
+            startUINav()
+            keyEncoder("UULLLLUUURRRRRDDDWEWWWWUUUUUURRDDWEWEWWW")
             ; buy eggs
             goShopping(currentlyAllowedEggs, eggItems, smartBuying, 5)
 
             ; close
             repeatKey("Up", eggItems.Length() * 2 + 5)
-            keyEncoder("RRWWE")
+            startUINav()
+            startUINav()
+            keyEncoder("UUULLLLLLLLUUUUUUURRRRDRLRE")
             sendDiscordQueue("Egg Shop")
             Sleep, 500
             startUINav()
@@ -367,119 +375,12 @@ Autocraft:
             Sleep, 500
             SendInput, e ; start crafting
             sendDiscordMessage("Started crafting " . item . "! Will be complete in approximately ``" . currentACItem["time"] . "`` minutes.")
+        } else {
+            tooltipLog("Did not open crafting menu, skipping...")
         }
         Sleep, 500
         startUINav()
     }
-
-; AutoCollection:
-;     exitIfWindowDies()
-
-;     if(!autoCollection) {
-;         Gosub, EventCycle
-;         Return
-;     }
-
-;     tooltipLog("Starting auto-collection...")
-;     startUINav()
-;     keyEncoder("UULLLLURRRREW")
-;     startUINav()
-;     recalibrateCameraDistance()
-;     Sleep, 500
-;     Loop, 5 {
-;         Send, {WheelDown}
-;         Sleep, 10
-;     }
-
-;     Loop, 10 {
-;         holdKey("down", 500) ; walk to autocollect area
-;         ; start collecting
-;         holdKey("e", 3000)
-;     }
-;     recalibrateCameraDistance()
-;     Sleep, 500
-
-;     ; event specific stuff
-;     tpWithItem(3)
-;     Sleep, 300
-;     holdKey("down", 300)
-;     Sleep, 300
-;     Loop, 2 {
-;         Send, {WheelDown}
-;         Sleep, 10
-;     }
-;     Sleep, 300
-;     repeatKey("e")
-;     Sleep, 1000
-;     Loop, 7 {
-;         Send, {WheelUp}
-;         Sleep, 10
-;     }
-;     Sleep, 1000
-;     SafeClickRelative(0.9, 0.70)
-;     Sleep, 3000
-
-; EventCycle:
-;     exitIfWindowDies()
-
-;     ; skip seeds if none are selected
-;     if (currentlyAllowedEvent.Length() = 0 || !canDoEvent) {
-;         Gosub, PassShopCycle
-;         Return
-;     }
-
-;     ; open shop
-;     recalibrateCameraDistance()
-;     if(!autoCollection) {
-;         tpWithItem(3)
-;     } else {
-;         holdKey("up", 300)
-;     }
-;     Sleep, 300
-;     holdKey("up", 500)
-;     Sleep, 300
-;     holdKey("d", 1800)
-;     Sleep, 300
-;     holdKey("down", 500)
-;     Sleep, 300
-;     holdKey("d", 1200)
-;     Sleep, 300
-;     holdKey("down", 700)
-;     Sleep, 300
-;     ; }
-
-;     Loop, 2 {
-;         Send, {WheelDown}
-;         Sleep, 10
-;     }
-;     Sleep, 300
-
-;     repeatKey("e")
-;     Sleep, 1000
-;     startUINav()
-;     Sleep, 1000
-;     if(isShopOpen()) {
-;         keyEncoder("RRRR")
-;         repeatKey("Up", eventItems.Length() + 5)
-;         keyEncoder("RRD")
-;         tooltipLog("Shopping for event seeds...")
-;         goShopping(currentlyAllowedEvent, eventItems, smartBuying, 10, true)
-;         repeatKey("Up", eventItems.Length() + 5)
-;         keyEncoder("RRRRLUUWEW")
-;         sendDiscordQueue("Event Shop")
-;         startUINav()
-;     }
-;     recalibrateCameraDistance()
-; Sleep, 300
-; holdKey("a", 800)
-; Sleep, 300
-; holdKey("down", 400)
-
-; Loop, 2 {
-;     Send, {WheelDown}
-;     Sleep, 10
-; }
-; Sleep, 300
 
 PassShopCycle:
     exitIfWindowDies()
@@ -490,23 +391,23 @@ PassShopCycle:
 
     tooltipLog("Opening pass shop...")
     startUINav()
-    keyEncoder("UUUUUULLLLLLDEUUURRRRREWW")
+    keyEncoder("UUUUUULLLLLLDEUUURRRRRRRULE")
     ; no exit if it fails since this shouldn't fail often
     if(isShopOpen()) {
         tooltipLog("Shopping for pass items...")
         keyEncoder("DDD")
         repeatKey("Up", (passItems.Length() * 2) + 5)
-        keyEncoder("RRRDDD")
+        keyEncoder("RRRDDDD")
         goShopping(currentlyAllowedPassItems, passItems, smartBuying, 10, true)
         repeatKey("Up", (passItems.Length() * 2) + 5)
         keyEncoder("RRRRWE")
     }
-    Sleep, 500
+    Sleep, 200
     startUINav()
 
 WaitForNextCycle:
     ; reset for next run and show the timer
-    SafeMoveRelative(0.5, 0.5)
+    SafeMouseRelative(0.5, 0.5)
     finished := true
     cycleCount += 1
     crashCounter := 0
@@ -518,7 +419,7 @@ tpWithItem(slot) {
     tooltipLog("Teleporting to shop...")
     Send, {%slot%}
     Sleep, 600
-    SafeClickRelative(0.5, 0.5)
+    SafeMouseRelative(0.5, 0.5, true)
     Sleep, 600
 }
 
@@ -547,7 +448,7 @@ reconnect() {
     SendInput, {tab}
     Sleep, 1000
     ; skip loading screen if possible
-    SafeClickRelative(0.5, 0.5)
+    SafeMouseRelative(0.5, 0.5, true)
     Sleep, 15000
     sendDiscordMessage("Reconnected to the game!", 65280)
     crashCounter += 1
@@ -566,55 +467,17 @@ exitIfWindowDies() {
     WinActivate, ahk_exe RobloxPlayerBeta.exe
 }
 
-genericImageSearch(imagePath) {
-    startXPercent := 43
-    startYPercent := 27
-    endXPercent := 50
-    endYPercent := 82
-
-    CoordMode, Pixel, Screen
-
-    ; find boundary percents according to screen size
-    x1 := Round((startXPercent / 100) * A_ScreenWidth)
-    y1 := Round((startYPercent / 100) * A_ScreenHeight)
-    x2 := Round((endXPercent / 100) * A_ScreenWidth)
-    y2 := Round((endYPercent / 100) * A_ScreenHeight)
-
-    ImageSearch, px, py, x1, y1, x2, y2, *10 %A_ScriptDir%/images/%imagePath%
-    if(ErrorLevel = 0) {
-        return true
-    } else if (ErrorLevel = 2) {
-        tooltipLog("Error: Failed to find search image (Did you unzip the file?)")
-        sendDiscordMessage("Failed to find search image, __**Did you unzip the file**__?", 16711680)
-        Gosub, Close
-    }
-    return false
-}
-
 ; show the timers for when the next cycles are
 ShowTimeTip:
     Gui, Submit, NoHide  ; Ensure checkbox state is current
 
-    ; 5 minute timer
-    SecondsUntil5 := 300 - (Mod(A_Min, 5) * 60 + A_Sec)
-    SecondsUntil5 := Mod(SecondsUntil5, 301)
-    RemainingMins5 := Floor(SecondsUntil5 / 60)
-    RemainingSecs5 := Mod(SecondsUntil5, 60)
-    FormattedTime5 := Format("{:02}:{:02}", RemainingMins5, RemainingSecs5)
+    FormattedTime5 := getTimeDisplay(5)
+    FormattedTime30 := getTimeDisplay(30)
+    FormattedTime60 := getTimeDisplay(60)
 
-    ; 30 minute timer (egg)
-    SecondsUntil30 := 1800 - (Mod(A_Min, 30) * 60 + A_Sec)
-    SecondsUntil30 := Mod(SecondsUntil30, 1801)
-    RemainingMins30 := Floor(SecondsUntil30 / 60)
-    RemainingSecs30 := Mod(SecondsUntil30, 60)
-    FormattedTime30 := Format("{:02}:{:02}", RemainingMins30, RemainingSecs30)
-
-    ; 60 minute timer (event)
-    SecondsUntil60 := 3600 - (Mod(A_Min, 60) * 60 + A_Sec)
-    SecondsUntil60 := Mod(SecondsUntil60, 3601)
-    RemainingMins60 := Floor(SecondsUntil60 / 60)
-    RemainingSecs60 := Mod(SecondsUntil60, 60)
-    FormattedTime60 := Format("{:02}:{:02}", RemainingMins60, RemainingSecs60)
+    SecondsUntil5 := getTimeToMinutes(5).until
+    SecondsUntil30 := getTimeToMinutes(30).until
+    SecondsUntil60 := getTimeToMinutes(60).until
 
     if (SecondsUntil30 < 3 || adminAbuse) {
         canDoEgg := true
@@ -638,6 +501,20 @@ ShowTimeTip:
         Gosub, Alignment
     }
 Return
+
+getTimeToMinutes(minutes) {
+    SecondsUntil := (minutes * 60) - (Mod(A_Min, 5) * 60 + A_Sec)
+    SecondsUntil := Mod(SecondsUntil, 301)
+    RemainingMins := Floor(SecondsUntil / 60)
+    RemainingSecs := Mod(SecondsUntil, 60)
+    return {"until": SecondsUntil, "mins": RemainingMins, "secs": RemainingSecs}
+}
+
+getTimeDisplay(timeInMinutes) {
+    timeData := getTimeToMinutes(timeInMinutes)
+    FormattedTime := Format("{:02}:{:02}", timeData.mins, timeData.secs)
+    return FormattedTime
+}
 
 ; LETS GO GAMBL- i mean shopping
 goShopping(arr, allArr, smartBuying, spamCount := 30, isEvent := false) {
@@ -700,9 +577,9 @@ buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true, shouldCount :
 
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
-    keyEncoder("LLLUUULLLUUULURRRD")
-    repeatKey("up", shopObj.Length() + 10)
-    keyEncoder("DWEWWWEWWW")
+    keyEncoder("RRRR")
+    repeatKey("up", (shopObj.Length() * 2) + 5)
+    keyEncoder("LLLLURRRRRDDWWEWWEWW")
     count := findScuffedIndex(shopObj, item)
     repeatKey("down", count - 1)
     keyEncoder("WWWEWDWE")
@@ -710,12 +587,12 @@ selectCraftableItem(shopObj, item) {
 }
 
 isThereStock() {
-    return colorDetect(0x20b41c) || colorDetect(0x26EE26) || colorDetect(0x2596B3)
+    return screenLook(0x20b41c) || screenLook(0x26EE26) || screenLook(0x2596B3)
 }
 
 isThereNoStock() {
     ; using image search since gray is a very common screen color
-    return genericImageSearch("no_stock.png") || genericImageSearch("no_stock_hover.png")
+    return screenLook("no_stock.png", 10) || screenLook("no_stock_hover.png", 10)
 }
 
 isShopOpen() {
@@ -723,23 +600,26 @@ isShopOpen() {
 
     ; 1. every other shop bg OR event and egg bg OR alternate main shop bg (for some reason it changes on some servers)
     ; 2. check no large block of disconnect pixels exist
-    return (colorDetect(0x50240c) || colorDetect(0x360805) || colorDetect(0x48210e)) && !disconnectColorCheck()
+    return (screenLook(0x50240c) || screenLook(0x360805) || screenLook(0x48210e)) && !screenLook("gray.png", 0, 40, 27, 60, 85)
 }
 
-colorDetect(c, v := 5) {
-    startXPercent := 43
-    startYPercent := 27
-    endXPercent := 56
-    endYPercent := 82
-
+screenLook(c, v := 5, sXp := 43, sYp := 27, eXp := 56, eYp := 82) {
     CoordMode, Pixel, Screen
 
-    x1 := Round((startXPercent / 100) * A_ScreenWidth)
-    y1 := Round((startYPercent / 100) * A_ScreenHeight)
-    x2 := Round((endXPercent / 100) * A_ScreenWidth)
-    y2 := Round((endYPercent / 100) * A_ScreenHeight)
+    x1 := Round((sXp / 100) * A_ScreenWidth)
+    y1 := Round((sYp / 100) * A_ScreenHeight)
+    x2 := Round((eXp / 100) * A_ScreenWidth)
+    y2 := Round((eYp / 100) * A_ScreenHeight)
 
-    PixelSearch, px, py, x1, y1, x2, y2, c, v, Fast RGB
+    if c is Integer
+    {
+        PixelSearch, px, py, x1, y1, x2, y2, c, v, Fast RGB
+    }
+    else
+    {
+        ImageSearch, px, py, x1, y1, x2, y2, *%v% %A_ScriptDir%/images/%c%
+    }
+
     ; MouseMove, px, py ; uncomment to test colo(u)r detection
     if(ErrorLevel = 0) {
         return true
@@ -751,32 +631,7 @@ colorDetect(c, v := 5) {
     return false
 }
 
-disconnectColorCheck() {
-    startXPercent := 40
-    startYPercent := 27
-    endXPercent := 60
-    endYPercent := 85
-
-    CoordMode, Pixel, Screen
-
-    x1 := Round((startXPercent / 100) * A_ScreenWidth)
-    y1 := Round((startYPercent / 100) * A_ScreenHeight)
-    x2 := Round((endXPercent / 100) * A_ScreenWidth)
-    y2 := Round((endYPercent / 100) * A_ScreenHeight)
-
-    ImageSearch, px, py, x1, y1, x2, y2, %A_ScriptDir%/images/gray.png
-    if(ErrorLevel = 0) {
-        longRecon := true
-        return true
-    } else if (ErrorLevel = 2) {
-        tooltipLog("FATAL ERROR: Failed to find disconnect image (Did you unzip the file?)")
-        sendDiscordMessage("Failed to find disconnect image, __**Did you unzip the file**__?", 0)
-        Gosub, Close
-    }
-    return false
-}
-
-SafeMoveRelative(xRatio, yRatio) {
+SafeMouseRelative(xRatio, yRatio, press := false) {
     if !WinExist("ahk_exe RobloxPlayerBeta.exe") {
         Return
     }
@@ -784,18 +639,11 @@ SafeMoveRelative(xRatio, yRatio) {
     WinGetPos, winX, winY, winW, winH, ahk_exe RobloxPlayerBeta.exe
     moveX := winX + Round(xRatio * winW)
     moveY := winY + Round(yRatio * winH)
-    MouseMove, %moveX%, %moveY%
-}
-
-SafeClickRelative(xRatio, yRatio) {
-    if !WinExist("ahk_exe RobloxPlayerBeta.exe") {
-        Return
+    if (press) {
+        Click, %moveX%, %moveY%
+    } else {
+        MouseMove, %moveX%, %moveY%
     }
-
-    WinGetPos, winX, winY, winW, winH, ahk_exe RobloxPlayerBeta.exe
-    clickX := winX + Round(xRatio * winW)
-    clickY := winY + Round(yRatio * winH)
-    Click, %clickX%, %clickY%
 }
 
 startUINav() {
@@ -1001,22 +849,23 @@ ShowGui:
     itemH := 25
     paddingX := 20
     paddingY := 80
-
+    
     groupBoxX := 30
     groupBoxY := 90
     groupBoxW := 490
     groupBoxH := 320
-
+    
     Gui, Font, s10 bold
     Gui, Add, Tab3, x10 y35 w520 h400, Seeds|Gear|Eggs|Crafting|Pass|Ping List|Settings|Credits|Donators
-
+    
     ; seeds
     Gui, Font, s10 c1C96EF
     Gui, Tab, Seeds
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
-
-    Gui, Add, Checkbox, x205 y105 w150 h23 c1C96EF vCheckAllSeeds gToggleAllSeeds, Select All Seeds
-
+    
+    Gui, Add, Checkbox, x55 y105 w150 h23 c1C96EF vCheckAllSeeds gToggleAllSeeds, Select All Seeds
+    ; Gui, Add, Checkbox, x205 y105 w170 h23 cFF0044 vdailyDeals gUpdatePlayerValues, Buy Daily Deals (BETA)
+    
     paddingY := groupBoxY + 50
     paddingX := groupBoxX + 25
     Loop % seedItems.Length() { ; generate buttons
@@ -1026,12 +875,15 @@ ShowGui:
         y := paddingY + (itemH * row)
         seed := seedItems[A_Index]
         isChecked := arrContains(currentlyAllowedSeeds, seed) ? 1 : 0
-        rarity := SeedRarity(seed)
-        color := itemColor(rarity)
+        rarity := getRarity(seed)
+        color := getColor(rarity)
         Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w143 h23 gUpdateSeedState vseedCheckboxes%A_Index% Checked%isChecked%, % seed
         ; this format repeats for a lot of the tabs, just different variables and positions
     }
+
+    GuiControl,,dailyDeals, % dailyDeals
+
     Gui, Tab, Gear
     Gui, Font, s10
     Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
@@ -1047,8 +899,8 @@ ShowGui:
         y := paddingY + (itemH * row)
         gear := gearItems[A_Index]
         isChecked := arrContains(currentlyAllowedGear, gear) ? 1 : 0
-        rarity := GearRarity(gear)
-        color := itemColor(rarity)
+        rarity := getRarity(gear)
+        color := getColor(rarity)
         Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w151 h23 gUpdateGearState vgearCheckboxes%A_Index% Checked%isChecked%, % gear
     }
@@ -1069,8 +921,8 @@ ShowGui:
         y := paddingY + (itemH * row)
         egg := eggItems[A_Index]
         isChecked := arrContains(currentlyAllowedEggs, egg) ? 1 : 0
-        rarity := AutismIsMySuperpower(egg)
-        color := itemColor(rarity)
+        rarity := getRarity(egg)
+        color := getColor(rarity)
         Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateEggState veggCheckboxes%A_Index% Checked%isChecked%, % egg
         Gui, Font, cFFFFFF bold
@@ -1143,8 +995,8 @@ ShowGui:
         y := paddingY + (itemH * row)
         item := passItems[A_Index]
         isChecked := arrContains(currentlyAllowedPassItems, item) ? 1 : 0
-        rarity := PassRarity(item)
-        color := itemColor(rarity)
+        rarity := getRarity(item)
+        color := getColor(rarity)
         Gui, Font, c%color% bold
         Gui, Add, Checkbox, x%x% y%y% w200 h23 gUpdatePassState vpassCheckboxes%A_Index% Checked%isChecked%, % item
         Gui, Font, cFFFFFF bold
@@ -1200,12 +1052,12 @@ ShowGui:
     ; Gui, Add, Checkbox, x50 y295 w151 h23 vwalkToEvent gUpdatePlayerValues, Walk to Event Shop (reliability issues)
     Gui, Add, Checkbox, x50 y275 w151 h23 vsmartBuying gUpdatePlayerValues, Smart Buying
     Gui, Add, Checkbox, x50 y295 w300 h23 vfastSmartBuy gUpdatePlayerValues, Fast Smart Buying (requires Smart Buying)
-    Gui, Add, Checkbox, x50 y315 w300 h23 vautoCollection gUpdatePlayerValues, Auto Submit Plants (BETA)
+    ; Gui, Add, Checkbox, x50 y315 w300 h23 vautoCollection gUpdatePlayerValues, Auto Submit Plants (BETA)
 
     ; GuiControl,, walkToEvent, % walkToEvent
     GuiControl,, smartBuying, % smartBuying
     GuiControl,, fastSmartBuy, % fastSmartBuy
-    GuiControl,, autoCollection, % autoCollection
+    ; GuiControl,, autoCollection, % autoCollection
 
     Gui, Tab, Credits
     Gui, Font, s10
@@ -1266,17 +1118,15 @@ UpdatePerfSetting:
     Gui, Submit, NoHide
     perfMode := StrSplit(perfSetting, " ")[1]
     if (perfMode = "Modern") {
-        sleepPerf := 50
-    } else if (perfMode = "Default") {
-        sleepPerf := 75
+        sleepPerf := 30
     } else if (perfMode = "Chromebook") {
-        sleepPerf := 125
+        sleepPerf := 100
     } else if (perfMode = "Atari") {
         sleepPerf := 200
     } else if (perfMode = "Supercomputer") {
         sleepPerf := 0
     } else {
-        sleepPerf := 100
+        sleepPerf := 50
     }
     saveValues()
 Return
@@ -1308,6 +1158,7 @@ loadValues() {
     IniRead, perfSetting, %A_ScriptDir%/config.ini, PlayerConf, perfSetting, Default
     IniRead, uiNavKeybindStr, %A_ScriptDir%/config.ini, PlayerConf, uiNavKeybind
     IniRead, fastSmartBuyStr, %A_ScriptDir%/config.ini, PlayerConf, fastSmartBuy, 0
+    IniRead, dailyDealsStr, %A_ScriptDir%/config.ini, PlayerConf, dailyDeals, 0
     IniRead, autoCollectionStr, %A_ScriptDir%/config.ini, PlayerConf, autoCollection, 0
     AutoTrim, Off
 
@@ -1325,6 +1176,7 @@ loadValues() {
     smartBuying := smartBuyingStr = "1" ? true : false
     fastSmartBuy := fastSmartBuyStr = "1" ? true : false
     autoCollection := autoCollectionStr = "1" ? true : false
+    dailyDeals := dailyDealsStr = "1" ? true : false
 
     if(pingListStr != "" and pingListStr != "ERROR") {
         pingList := StrSplit(pingListStr, ", ")
@@ -1377,7 +1229,8 @@ saveValues() {
     ; IniWrite, %walkToEvent%, %A_ScriptDir%/config.ini, PlayerConf, walkToEvent
     IniWrite, %smartBuying%, %A_ScriptDir%/config.ini, PlayerConf, smartBuying
     IniWrite, %fastSmartBuy%, %A_ScriptDir%/config.ini, PlayerConf, fastSmartBuy
-    IniWrite, %autoCollection%, %A_ScriptDir%/config.ini, PlayerConf, autoCollection
+    ; IniWrite, %autoCollection%, %A_ScriptDir%/config.ini, PlayerConf, autoCollection
+    IniWrite, %dailyDeals%, %A_ScriptDir%/config.ini, PlayerConf, dailyDeals
 
     currentlyAllowedSeedsStr := arrayToString(currentlyAllowedSeeds)
     currentlyAllowedGearStr := arrayToString(currentlyAllowedGear)
