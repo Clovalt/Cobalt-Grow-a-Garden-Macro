@@ -167,11 +167,11 @@ SeedCycle:
     startUINav()
     Sleep, 3000
     if(isShopOpen()) {
-        if(dailyDeals && cycleCount = 0) {
-            keyEncoder("RRRRUUUUUUUUUUUURRRRUWWEWW")
-            startUINav()
-            startUINav()
-        }
+        ; if(dailyDeals && cycleCount = 0) {
+        ;     keyEncoder("RRRRUUUUUUUUUUUURRRRUWWEWW")
+        ;     startUINav()
+        ;     startUINav()
+        ; }
 
         keyEncoder("RRRR")
         repeatKey("Up", seedItems.Length() + 5)
@@ -182,20 +182,20 @@ SeedCycle:
         ; close and report
         repeatKey("Up", seedItems.Length() + 5)
         
-        if(dailyDeals && cycleCount = 0) {
-            keyEncoder("RRDDDRWWEWW")
-            startUINav()
-            startUINav()
-            keyEncoder("RRRRUUUUUUURRDD")
-            repeatKey("Enter", 30)
-            keyEncoder("D")
-            repeatKey("Enter", 30)
-            keyEncoder("DLLLLU")
-            repeatKey("Enter", 30)
-            keyEncoder("DLLLLU")
-            repeatKey("Enter", 30)
-            keyEncoder("UUUULLLLLURRRRRDWWEWW")
-        }
+        ; if(dailyDeals && cycleCount = 0) {
+        ;     keyEncoder("RRDDDRWWEWW")
+        ;     startUINav()
+        ;     startUINav()
+        ;     keyEncoder("RRRRUUUUUUURRDD")
+        ;     repeatKey("Enter", 30)
+        ;     keyEncoder("D")
+        ;     repeatKey("Enter", 30)
+        ;     keyEncoder("DLLLLU")
+        ;     repeatKey("Enter", 30)
+        ;     keyEncoder("DLLLLU")
+        ;     repeatKey("Enter", 30)
+        ;     keyEncoder("UUUULLLLLURRRRRDWWEWW")
+        ; }
 
         keyEncoder("RRDRLRWE")
         sendDiscordQueue("Seed Shop")
