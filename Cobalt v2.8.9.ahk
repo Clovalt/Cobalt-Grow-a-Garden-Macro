@@ -153,7 +153,8 @@ SeedCycle:
     exitIfWindowDies()
 
     ; skip seeds if none are selected
-    if (!dailyDeals && currentlyAllowedSeeds.Length() = 0) {
+    ; !dailyDeals && 
+    if (currentlyAllowedSeeds.Length() = 0) {
         Gosub, GearCycle
         Return
     }
