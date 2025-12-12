@@ -133,7 +133,7 @@ Alignment:
     sleep, 500
     startUINav()
     ; align at perfect 90 degree angle
-    keyEncoder("ULLULLULLULLULLULLURRRRRDULELERRELLRELERRELLRELERRELLRELERRELLRELERRELLW")
+    keyEncoder("ULLLLLLLLUUUUUUUUUURRRRELERRELELERRE")
     startUINav()
 
     ; turn off follow camera mode
@@ -161,26 +161,27 @@ SeedCycle:
 
     startUINav()
     ; open shop
-    keyEncoder("WWULLULLULLULLULLULLUWRRRRRLLEWW")
+    keyEncoder("WWULLLLLLLLUUUUUUUUUUWRRRRRLLEWW")
     SendInput, e
-    startUINav()
-    startUINav()
     Sleep, 3000
     if(isShopOpen()) {
         ; if(dailyDeals && cycleCount = 0) {
-        ;     keyEncoder("RRRRUUUUUUUUUUUURRRRUWWEWW")
-        ;     startUINav()
-        ;     startUINav()
-        ; }
-
-        keyEncoder("RRRR")
+            ;     keyEncoder("RRRRUUUUUUUUUUUURRRRUWWEWW")
+            ;     startUINav()
+            ;     startUINav()
+            ; }
+            
+        startUINav()
+        startUINav()
+        keyEncoder("RRDRU")
         repeatKey("Up", seedItems.Length() + 5)
-        keyEncoder("RRDDD")
+        keyEncoder("LDRU")
         tooltipLog("Shopping for seeds...")
         goShopping(currentlyAllowedSeeds, seedItems, smartBuying)
+        keyEncoder("R")
         
         ; close and report
-        repeatKey("Up", seedItems.Length() + 5)
+        repeatKey("Up", seedItems.Length() + 10)
         
         ; if(dailyDeals && cycleCount = 0) {
         ;     keyEncoder("RRDDDRWWEWW")
@@ -197,7 +198,8 @@ SeedCycle:
         ;     keyEncoder("UUUULLLLLURRRRRDWWEWW")
         ; }
 
-        keyEncoder("RRDRLRWE")
+
+        keyEncoder("DWWE")
         sendDiscordQueue("Seed Shop")
         startUINav()
     } else {
@@ -221,12 +223,15 @@ GearCycle:
     if(isShopOpen()) {
         startUINav()
         tooltipLog("Shopping for gear...")
-        keyEncoder("RRRR")
+        startUINav()
+        startUINav()
+        keyEncoder("RRDRU")
         repeatKey("Up", gearItems.Length() * 2 + 5)
-        keyEncoder("RRDRD")
+        keyEncoder("LDRUU")
         goShopping(currentlyAllowedGear, gearItems, smartBuying, 20)
-        repeatKey("Up", gearItems.Length() * 2 + 5)
-        keyEncoder("RRDRLRWE")
+        keyEncoder("R")
+        repeatKey("Up", gearItems.Length() * 2 + 10)
+        keyEncoder("RRWWE")
         sendDiscordQueue("Gear Shop")
         startUINav()
         Sleep, %sleepPerf%
@@ -264,19 +269,15 @@ EggCycle:
         if(isShopOpen()) {
             startUINav()
             tooltipLog("Shopping for eggs...")
-            keyEncoder("RRRR")
+            keyEncoder("RRDRU")
             repeatKey("Up", eggItems.Length() * 2 + 5)
-            startUINav()
-            startUINav()
-            keyEncoder("UULLLLUUURRRRRDDDWEWWWWUUUUUURRDDWEWEWWW")
+            keyEncoder("LDRUU")
             ; buy eggs
             goShopping(currentlyAllowedEggs, eggItems, smartBuying, 5)
-
+            keyEncoder("R")
             ; close
             repeatKey("Up", eggItems.Length() * 2 + 5)
-            startUINav()
-            startUINav()
-            keyEncoder("UUULLLLLLLLUUUUUUURRRRDRLRE")
+            keyEncoder("RRWWE")
             sendDiscordQueue("Egg Shop")
             Sleep, 500
             startUINav()
@@ -371,7 +372,7 @@ Autocraft:
         ; if crafting is opened, select the item, input the items, and start crafting
         if(isShopOpen()) {
             index := selectCraftableItem(category, item)
-            Sleep, 500
+            Sleep, 2000
             SendInput, f ; fill items
             Sleep, 500
             SendInput, e ; start crafting
@@ -392,15 +393,17 @@ PassShopCycle:
 
     tooltipLog("Opening pass shop...")
     startUINav()
-    keyEncoder("UUUUUULLLLLLDEUUURRRRRRRULE")
+    keyEncoder("LLUUWE")
     ; no exit if it fails since this shouldn't fail often
     if(isShopOpen()) {
         tooltipLog("Shopping for pass items...")
-        keyEncoder("DDD")
-        repeatKey("Up", (passItems.Length() * 2) + 5)
-        keyEncoder("RRRDDDD")
+        startUINav()
+        startUINav()
+        keyEncoder("RRRRRWWEWWDDD")
+        repeatKey("Up", (passItems.Length() * 2) + 10)
+        keyEncoder("RRRDDD")
         goShopping(currentlyAllowedPassItems, passItems, smartBuying, 10, true)
-        repeatKey("Up", (passItems.Length() * 2) + 5)
+        repeatKey("Up", (passItems.Length() * 2) + 10)
         keyEncoder("RRRRWE")
     }
     Sleep, 200
@@ -578,9 +581,11 @@ buyAllAvailableSmart(spamCount := 30, item := "", useLeft := true, shouldCount :
 
 ; select the item you want to craft by its index in the LUT
 selectCraftableItem(shopObj, item) {
-    keyEncoder("RRRR")
+    startUINav()
+    startUINav()
+    keyEncoder("RRRD")
     repeatKey("up", (shopObj.Length() * 2) + 5)
-    keyEncoder("LLLLURRRRRDDWWEWWEWW")
+    keyEncoder("RDWWEWWEWWW")
     count := findScuffedIndex(shopObj, item)
     repeatKey("down", count - 1)
     keyEncoder("WWWEWDWE")
@@ -956,29 +961,6 @@ ShowGui:
         isChecked := arrContains(autocraftingQueue, plant) ? 1 : 0
         Gui, Add, Checkbox, x%x% y%y% w140 h23 gUpdateAutoCraftingState vplantACCheckboxes%A_Index% Checked%isChecked%, % plant
     }
-
-    ; Gui, Tab, Event
-    ; Gui, Font, s10
-    ; Gui, Add, GroupBox, x%groupBoxX% y%groupBoxY% w%groupBoxW% h%groupBoxH%,
-
-    ; Gui, Add, Checkbox, x55 y105 w150 h23 vCheckAllEventItems gToggleAllEvent cFFFF28, Select All Evo Seeds
-
-    ; paddingY := groupBoxY + 50
-    ; paddingX := groupBoxX + 25
-    ; cols := 1
-    ; Loop % eventItems.Length() {
-    ;     row := Mod(A_Index - 1, Ceil(eventItems.Length() / cols))
-    ;     col := Floor((A_Index - 1) / Ceil(eventItems.Length() / cols))
-    ;     x := paddingX + (itemW * col)
-    ;     y := paddingY + (itemH * row)
-    ;     item := eventItems[A_Index]
-    ;     isChecked := arrContains(currentlyAllowedEvent, item) ? 1 : 0
-    ;     rarity := EventRarity(item)
-    ;     color := itemColor(rarity)
-    ;     Gui, Font, c%color% bold
-    ;     Gui, Add, Checkbox, x%x% y%y% w200 h23 gUpdateEventState veventCheckboxes%A_Index% Checked%isChecked%, % item
-    ;     Gui, Font, cFFFFFF bold
-    ; }
 
     Gui, Tab, Pass
     Gui, Font, s10

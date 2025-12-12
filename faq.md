@@ -29,7 +29,7 @@
 No, we do not plan on making a paid version and instead just simply accepting donations.
 
 ### The game updated and added a new seed when will the macro update???
-Please be patient this is a passion project and we do not get paid for this. We will update as soon as we can typically within a maximum of 3 days but normally will update within 2 or 3 hours of Grow a Garden updating
+Please be patient this is a passion project and we do not get paid for this. We will update as soon as we can.
 
 ### How do I report bugs?
 Please first check the ⁠known-issues channel in discord, and if your issue isn't known please report them in ⁠support
@@ -60,6 +60,7 @@ Absolutely!
 
 ### How do I download the macro from GitHub? How do you get your discord ID?
 Answer is in this video!
+
 https://youtu.be/BPC-vBSMETM
 
 ### Is AutoHotKey safe?

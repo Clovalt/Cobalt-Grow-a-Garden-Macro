@@ -26,15 +26,20 @@ acLUT.gear.Push({ name: "Small Toy", time: 10 })
 acLUT.gear.Push({ name: "Small Treat", time: 10 })
 acLUT.gear.Push({ name: "Pet Pouch", time: 30 })
 acLUT.gear.Push({ name: "Pack Bee", time: 240 })
+acLUT.gear.Push({ name: "Silver Ingot", time: 1 })
+acLUT.gear.Push({ name: "Gold Ingot", time: 1 })
+acLUT.gear.Push({ name: "Silver Piggy", time: 30 })
+acLUT.gear.Push({ name: "Gold Piggy", time: 45 })
+acLUT.gear.Push({ name: "Chimera Stone", time: 60 })
 
 ; Edit this to change the seeds
-global seedItems := ["Carrot", "Strawberry", "Blueberry", "Buttercup", "Tomato", "Corn", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Sunflower", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry", "Romanesco", "Crimson Thorn", "Zebrazinkle", "Octobloom"]
+global seedItems := ["Carrot", "Strawberry", "Blueberry", "Buttercup", "Tomato", "Corn", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Sunflower", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elder Strawberry", "Romanesco", "Crimson Thorn", "Zebrazinkle", "Octobloom", "Peppermint Vine"]
 ; global t2SeedItems := ["Broccoli", "Potato", "Brussels Sprout", "Cocomango"]
 
 ; Edit this to change the gear
 global gearItems := ["Watering Can", "Basic Sprinkler", "Advanced Sprinkler",  "Godly Sprinkler","Master Sprinkler", "Grandmast Sprinkler", "Trowel", "Recall Wrench", "Medium Toy", "Pet Name Reroller", "Pet Lead", "Medium Treat",  "Magnifying Glass", "Cleaning Spray", "Cleansing Pet Shard", "Favorite Tool", "Harvest Tool", "Friendship Pot",   "Levelup Lollipop", "Trading Ticket"]
 
-global eventItems := ["Bloodred Mushroom", "Jack O Lantern", "Pumpkin", "Candy Cornflower", "Ghoul Root", "Chicken Feed", "Seer Vine", "Poison Apple", "Blood Orange"]
+; global eventItems := ["Bloodred Mushroom", "Jack O Lantern", "Pumpkin", "Candy Cornflower", "Ghoul Root", "Chicken Feed", "Seer Vine", "Poison Apple", "Blood Orange"]
 global passItems := ["Zenith Crate", "Mossy Rock", "Silver Fertilizer", "Zenith Seed Pack", "Levelup Lollipop", "Grow All", "Wyrmvine"]
 
 ; Edit this to change the eggs

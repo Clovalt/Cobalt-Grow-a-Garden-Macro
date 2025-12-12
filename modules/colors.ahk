@@ -34,6 +34,7 @@ getRarity(item) {
         rarityMap["Crimson Thorn"] := "Transcendent"
         rarityMap["Zebrazinkle"] := "Transcendent"
         rarityMap["Octobloom"] := "Transcendent"
+        rarityMap["Peppermint Vine"] := "Transcendent"
         
         ; gear 
         rarityMap["Watering Can"] := "Common"
